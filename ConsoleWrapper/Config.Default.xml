@@ -1,0 +1,89 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<settings>
+	<gui>
+		<windowWidth>
+			<longname>Window Width</longname>
+			<value>640</value>
+			<default>640</default>
+			<description>Startup width of the window, in pixels.</description>
+		</windowWidth>
+		<windowHeight>
+			<longname>Window Height</longname>
+			<value>480</value>
+			<default>480</default>
+			<description>Startup height of the window, in pixels.</description>
+		</windowHeight>
+	</gui>
+	<wrapper>
+		<consoleWidth>
+			<longname>Console Width</longname>
+			<value>80</value>
+			<default>80</default>
+			<description>Width of the console in characters</description>
+		</consoleWidth>
+		<bufferSize>
+			<longname>Console Buffer</longname>
+			<value>500</value>
+			<default>500</default>
+			<description>Number of console lines to hold in the buffer. A high value can severely affect performance on slow machines.</description>
+		</bufferSize>
+		<defaultApp>
+			<longname>Default Startup Application</longname>
+			<value>cmd.exe</value>
+			<default>cmd.exe</default>
+			<description>The default application to run in the console if none is provided.</description>
+		</defaultApp>
+	</wrapper>
+	<camera>
+		<accelFactorLocation>
+			<longname>Camera Position Acceleration Factor</longname>
+			<value>0.5</value>
+			<default>0.5</default>
+			<description>Camera position animation; acceleration constant.</description>
+		</accelFactorLocation>
+		<velFactorLocation>
+			<longname>Camera Position Velocity Factor</longname>
+			<value>0.5</value>
+			<default>0.5</default>
+			<description>Camera position animation; velocity constant.</description>
+		</velFactorLocation>
+		<accelFactorLook>
+			<longname>Camera Target Acceleration Factor</longname>
+			<value>1.8</value>
+			<default>1.8</default>
+			<description>Camera target animation; acceleration constant.</description>
+		</accelFactorLook>
+		<velFactorLook>
+			<longname>Camera Target Velocity Factor</longname>
+			<value>0.7</value>
+			<default>0.7</default>
+			<description>Camera target animation; velocity constant.</description>
+		</velFactorLook>
+	</camera>
+	<spotlight>
+		<accelFactorLocation>
+			<longname>Spotlight Position Acceleration Factor</longname>
+			<value>0.6</value>
+			<default>0.6</default>
+			<description>Spotlight position animation; acceleration constant.</description>
+		</accelFactorLocation>
+		<velFactorLocation>
+			<longname>Spotlight Position Velocity Factor</longname>
+			<value>0.5</value>
+			<default>0.5</default>
+			<description>Spotlight position animation; velocity constant.</description>
+		</velFactorLocation>
+		<accelFactorLook>
+			<longname>Spotlight Target Acceleration Factor</longname>
+			<value>1.2</value>
+			<default>1.2</default>
+			<description>Spotlight target animation; acceleration constant.</description>
+		</accelFactorLook>
+		<velFactorLook>
+			<longname>Spotlight Target Velocity Factor</longname>
+			<value>0.5</value>
+			<default>0.5</default>
+			<description>Spotlight target animation; velocity constant.</description>
+		</velFactorLook>
+	</spotlight>
+</settings>
