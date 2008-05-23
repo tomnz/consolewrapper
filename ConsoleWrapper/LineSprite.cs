@@ -12,6 +12,8 @@ namespace ConsoleWrapper
     {
         public static readonly int MaxLineWidth = 80;
 
+        private readonly int mipLevels = 2;
+
         private Mesh _lineSprite;
         private Texture _lineTexture;
         public Texture LineTexture
@@ -114,8 +116,33 @@ namespace ConsoleWrapper
 
                 g.FillRectangle(new SolidBrush(Color.Black), new Rectangle(0, 0, b.Width, b.Height));
                 g.DrawString(displayString, font, new SolidBrush(Color.White), new PointF(0, 0));
+                
+                _lineTexture = new Texture(device, (int)_lineWidth * (int)Math.Pow(2.0, (double)mipLevels), (int)_lineHeight * (int)Math.Pow(2.0, (double)mipLevels), mipLevels + 1, Usage.RenderTarget, Format.Unknown, Pool.Default);
 
-                _lineTexture = Texture.FromBitmap(device, b, Usage.Dynamic, Pool.Default);
+                Surface s = _lineTexture.GetSurfaceLevel(mipLevels);
+                SurfaceLoader.FromSurface(s, Surface.FromBitmap(device, b, Pool.Default), Filter.Box, 0xFF0000);
+
+                g.Dispose();
+
+                for (int i = 1; i <= mipLevels; i++)
+                {
+                    int width = _lineWidth * (int)Math.Pow(2.0, (double)i);
+                    int height = _lineHeight * (int)Math.Pow(2, (double)i);
+
+                    b = new Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+                    font = new System.Drawing.Font(_fontFace, _fontSize * (float)Math.Pow(2, (double)i));
+
+                    g = Graphics.FromImage(b);
+                    g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
+
+                    g.FillRectangle(new SolidBrush(Color.Black), new Rectangle(0, 0, b.Width, b.Height));
+                    g.DrawString(displayString, font, new SolidBrush(Color.White), new PointF(0, 0));
+
+                    s = _lineTexture.GetSurfaceLevel(mipLevels - i);
+                    SurfaceLoader.FromSurface(s, Surface.FromBitmap(device, b, Pool.Default), Filter.Box, 0xFF0000);
+
+                    g.Dispose();
+                }
 
                 // Set up the material
                 _lineMaterial = new Material();
@@ -170,6 +197,9 @@ namespace ConsoleWrapper
 
         public void Animate(double time)
         {
+            if (!_valid)
+                return;
+
             _liveTime += time;
 
             if (_liveTime > _expandTime)
@@ -229,6 +259,9 @@ namespace ConsoleWrapper
                     device.SamplerState[0].AddressU = TextureAddress.Border;
                     device.SamplerState[0].AddressV = TextureAddress.Border;
                 }
+
+                // Mip maps
+                device.SamplerState[0].MipFilter = TextureFilter.Anisotropic;
 
                 // Draw the primitive
                 for (int i = 0; i < numSubSets; i++)

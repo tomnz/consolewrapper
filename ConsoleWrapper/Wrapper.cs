@@ -149,7 +149,7 @@ namespace ConsoleWrapper
             {
                 str = _currentLine + str;
 
-                string[] lines = str.Split(new string[] { Environment.NewLine, "\n" }, StringSplitOptions.None);
+                string[] lines = str.Split(new string[] { Environment.NewLine, "\n", "\n\r" }, StringSplitOptions.None);
 
                 for (int i = 0; i < lines.Length - 1; i++)
                 {

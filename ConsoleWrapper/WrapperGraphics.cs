@@ -33,6 +33,17 @@ namespace ConsoleWrapper
             }
         }
 
+        public bool IsValid
+        {
+            get
+            {
+                if (_deviceLost)
+                    return false;
+                else
+                    return true;
+            }
+        }
+
         // Helper classes
         private Camera _camera;
         private GraphicsTimer _timer;
@@ -277,6 +288,7 @@ namespace ConsoleWrapper
             try
             {
                 _device.TestCooperativeLevel();
+                _deviceLost = false;
             }
             catch (DeviceLostException)
             {
