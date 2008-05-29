@@ -176,7 +176,6 @@ namespace ConsoleWrapper
 
         private void DXGUI_ResizeEnd(object sender, EventArgs e)
         {
-            _graphics.InitializeGraphics(this);
             _render = true;
         }
 
@@ -189,6 +188,11 @@ namespace ConsoleWrapper
         private void DXGUI_MouseWheel(object sender, MouseEventArgs e)
         {
             _graphics.MoveView(Math.Sign(e.Delta) * -3);
+        }
+
+        private void DXGUI_Resize(object sender, EventArgs e)
+        {
+            _graphics.InitializeGraphics(this);
         }
 
     }

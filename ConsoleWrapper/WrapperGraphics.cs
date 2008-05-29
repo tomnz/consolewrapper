@@ -4,6 +4,7 @@ using System.Text;
 using Microsoft.DirectX;
 using Microsoft.DirectX.Direct3D;
 using System.Windows.Forms;
+using System.ComponentModel;
 
 namespace ConsoleWrapper
 {
@@ -100,6 +101,7 @@ namespace ConsoleWrapper
                 _device.DeviceReset += new System.EventHandler(this.OnResetDevice);
                 _device.DeviceLost += new System.EventHandler(this.OnLostDevice);
                 _device.Disposing += new System.EventHandler(this.OnDeviceDispose);
+                _device.DeviceResizing += new System.ComponentModel.CancelEventHandler(this.OnResizeDevice);
 
                 this.OnCreateDevice(_device, null);
 
@@ -124,8 +126,17 @@ namespace ConsoleWrapper
             this.OnResetDevice(sender, e);
         }
 
+        public void OnResizeDevice(object sender, CancelEventArgs e)
+        {
+            // Having DirectX resize for us causes problems - 
+            // we will handle resizing ourselves
+            e.Cancel = true;
+        }
+
         public void OnResetDevice(object sender, EventArgs e)
         {
+            if (_deviceLost) return;
+
             Device dev = (Device)sender;
             dev.RenderState.Lighting = true;
             dev.RenderState.CullMode = Cull.Clockwise;
@@ -149,16 +160,21 @@ namespace ConsoleWrapper
 
             _uiFont = new Font(_device, 11, 0, FontWeight.Normal, 0, false, CharacterSet.Default, Precision.Default, FontQuality.ClearType, PitchAndFamily.DefaultPitch, _fontFace);
 
-            if (_lines != null)
+            lock (_lines)
             {
-                for (int i = 0; i < _lines.Count; i++)
+                if (_lines != null)
                 {
-                    if (_lines[i] != null)
+                    for (int i = 0; i < _lines.Count; i++)
                     {
-                        _lines[i].Invalidate();
+                        if (_lines[i] != null)
+                        {
+                            _lines[i].Invalidate();
+                        }
                     }
                 }
             }
+
+            ResetTimer();
         }
 
         public void OnLostDevice(object sender, EventArgs e)
@@ -170,14 +186,17 @@ namespace ConsoleWrapper
 
         public void OnDeviceDispose(object sender, EventArgs e)
         {
-            if (_lines != null)
+            lock (_lines)
             {
-                for (int i = 0; i < _lines.Count; i++)
+                if (_lines != null)
                 {
-                    if (_lines[i] != null)
+                    for (int i = 0; i < _lines.Count; i++)
                     {
-                        _lines[i].Dispose();
-                        _lines[i] = null;
+                        if (_lines[i] != null)
+                        {
+                            _lines[i].Dispose();
+                            _lines[i] = null;
+                        }
                     }
                 }
             }
@@ -249,6 +268,26 @@ namespace ConsoleWrapper
                 foreach (LineSprite line in _lines)
                 {
                     _device.Transform.World = transform * baseLine;
+
+                    // Get some minification happening
+                    if (_device.DeviceCaps.TextureFilterCaps.SupportsMinifyAnisotropic)
+                        _device.SamplerState[0].MinFilter = TextureFilter.Anisotropic;
+                    else if (_device.DeviceCaps.TextureFilterCaps.SupportsMinifyGaussianQuad)
+                        _device.SamplerState[0].MinFilter = TextureFilter.GaussianQuad;
+                    else if (_device.DeviceCaps.TextureFilterCaps.SupportsMinifyLinear)
+                        _device.SamplerState[0].MinFilter = TextureFilter.Linear;
+
+                    // Stop texture wrapping
+                    if (_device.DeviceCaps.TextureAddressCaps.SupportsClamp)
+                    {
+                        _device.SamplerState[0].AddressU = TextureAddress.Clamp;
+                        _device.SamplerState[0].AddressV = TextureAddress.Clamp;
+                    }
+                    else if (_device.DeviceCaps.TextureAddressCaps.SupportsBorder)
+                    {
+                        _device.SamplerState[0].AddressU = TextureAddress.Border;
+                        _device.SamplerState[0].AddressV = TextureAddress.Border;
+                    }
 
                     if (!CullLine(viewingFrustum, Vector3.TransformCoordinate(new Vector3(0, 0, -line.Height), transform), Vector3.TransformCoordinate(new Vector3(line.Width, 0, 0), transform)))
                     {
@@ -462,6 +501,7 @@ namespace ConsoleWrapper
         internal void ResetTimer()
         {
             _timer.Reset();
+            _timer.TickFrame();
         }
     }
 }
