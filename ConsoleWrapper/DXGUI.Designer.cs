@@ -46,11 +46,12 @@ namespace ConsoleWrapper
             this.Name = "DXGUI";
             this.Text = "ConsoleWrapper";
             this.ResizeBegin += new System.EventHandler(this.DXGUI_ResizeBegin);
+            this.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.DXGUI_MouseWheel);
+            this.Resize += new System.EventHandler(this.DXGUI_Resize);
             this.Move += new System.EventHandler(this.DXGUI_Move);
             this.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.DXGUI_KeyPress);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.DXGUI_KeyDown);
             this.ResizeEnd += new System.EventHandler(this.DXGUI_ResizeEnd);
-            this.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.DXGUI_MouseWheel);
             this.ResumeLayout(false);
 
         }
