@@ -56,11 +56,11 @@ namespace ConsoleWrapper
                         case ConsoleString.StringType.Err:
                             {
                                 return Color.Orange;
-                            } break;
+                            }
                         case ConsoleString.StringType.Input:
                             {
                                 return Color.LightGreen;
-                            } break;
+                            }
                         default:
                             {
                                 return Color.White;

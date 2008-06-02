@@ -5,6 +5,9 @@ using Microsoft.DirectX;
 using Microsoft.DirectX.Direct3D;
 using System.Windows.Forms;
 using System.ComponentModel;
+using System.Deployment.Application;
+using System.Drawing;
+using System.IO;
 
 namespace ConsoleWrapper
 {
@@ -14,7 +17,7 @@ namespace ConsoleWrapper
         private Device _device;
         private PresentParameters _presentParams;
 
-        private Font _uiFont;
+        private Microsoft.DirectX.Direct3D.Font _uiFont;
         private String _fontFace = "Lucida Console";
         private int _fontSize = 12;
         private int _lineGap = 5;
@@ -50,7 +53,7 @@ namespace ConsoleWrapper
         private GraphicsTimer _timer;
 
         // All the lines which have been output so far
-        private IList<LineSprite> _lines;
+        private IList<Renderable> _lines;
         
         // Keeps record of the current line being input
         private ConsoleString _currentLine = new ConsoleString("");
@@ -80,7 +83,7 @@ namespace ConsoleWrapper
 
         public WrapperGraphics(Control parent)
         {
-            _lines = new List<LineSprite>();
+            _lines = new List<Renderable>();
 
             if (!InitializeGraphics(parent))
             {
@@ -123,6 +126,17 @@ namespace ConsoleWrapper
             Device dev = (Device)sender;
             _timer = new GraphicsTimer();
 
+            System.Reflection.Assembly ass = System.Reflection.Assembly.GetExecutingAssembly();
+            System.IO.Stream logoStream = ass.GetManifestResourceStream("ConsoleWrapper.Resources.logoImage.gif");
+
+            if (logoStream != null)
+            {
+                // Display logo
+                System.Drawing.Bitmap b = (Bitmap)System.Drawing.Bitmap.FromStream(logoStream);
+                _lines.Add(new ImageSprite(b, _device));
+                _numLines++;
+            }
+
             this.OnResetDevice(sender, e);
         }
 
@@ -142,23 +156,8 @@ namespace ConsoleWrapper
             dev.RenderState.CullMode = Cull.Clockwise;
             dev.RenderState.ZBufferEnable = true;
             dev.RenderState.DitherEnable = true;
-            dev.RenderState.SpecularEnable = true;
-            
-            //dev.Lights[0].Type = LightType.Directional;
-            //dev.Lights[0].Diffuse = System.Drawing.Color.White;
-            //dev.Lights[0].Direction = new Vector3(0.5f, -1.0f, -0.5f);
-            //dev.Lights[0].Enabled = true;
 
-            //dev.Lights[1].Type = LightType.Spot;
-            //dev.Lights[1].Diffuse = System.Drawing.Color.White;
-            //dev.Lights[1].InnerConeAngle = (float)Math.PI / 8.0f;
-            //dev.Lights[1].OuterConeAngle = (float)Math.PI / 2.0f;
-            //dev.Lights[1].Attenuation1 = 0.0f;
-            //dev.Lights[1].Falloff = 0.0f;
-            //dev.Lights[1].Range = 4500;
-            //dev.Lights[1].Enabled = true;
-
-            _uiFont = new Font(_device, 11, 0, FontWeight.Normal, 0, false, CharacterSet.Default, Precision.Default, FontQuality.ClearType, PitchAndFamily.DefaultPitch, _fontFace);
+            _uiFont = new Microsoft.DirectX.Direct3D.Font(_device, 11, 0, FontWeight.Normal, 0, false, CharacterSet.Default, Precision.Default, FontQuality.ClearType, PitchAndFamily.DefaultPitch, _fontFace);
 
             lock (_lines)
             {
@@ -237,9 +236,10 @@ namespace ConsoleWrapper
 
                 lock (_lines)
                 {
-                    foreach (LineSprite line in _lines)
+                    foreach (Object line in _lines)
                     {
-                        line.Animate((float)frameTime);
+                        if (line is IAnimatable)
+                            ((IAnimatable)line).Animate((float)frameTime);
                     }
                 }
             }
@@ -250,14 +250,6 @@ namespace ConsoleWrapper
             // Setup the view
             _camera.SetupMatrices(_device);
 
-            //_device.Transform.View = Matrix.LookAtLH(new Vector3(0, 3000, -1000),
-            //    new Vector3(0, 0, -1000), new Vector3(0.0f, 0.0f, 1.0f));
-            //_device.Transform.Projection = Matrix.PerspectiveFovLH((float)(Math.PI / 4), 1.0f, 1.0f, 5000.0f);
-            //_device.Lights[0].Type = LightType.Directional;
-            //_device.Lights[0].Direction = new Vector3(0, -1, 0);
-            //_device.Lights[0].Diffuse = System.Drawing.Color.Red;
-            //_device.Lights[0].Enabled = true;
-
             // Get the viewing frustum
             Plane[] viewingFrustum = _camera.GetFrustum();
             
@@ -265,7 +257,7 @@ namespace ConsoleWrapper
 
             lock (_lines)
             {
-                foreach (LineSprite line in _lines)
+                foreach (Renderable line in _lines)
                 {
                     _device.Transform.World = transform * baseLine;
 

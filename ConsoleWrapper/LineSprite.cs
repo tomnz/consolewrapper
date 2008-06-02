@@ -10,11 +10,11 @@ using System.Threading;
 
 namespace ConsoleWrapper
 {
-    class LineSprite : IDisposable, IRenderable, IAnimatable
+    class LineSprite : Renderable, IDisposable, IAnimatable
     {
         public static readonly int MaxLineWidth = 80;
 
-        private readonly int mipLevels = 2;
+        //private readonly int mipLevels = 2;
 
         private Mesh _lineSprite;
         private Texture _lineTexture;
@@ -33,12 +33,12 @@ namespace ConsoleWrapper
         private int _fontSize;
 
         private int _lineWidth;
-        public int Width
+        public override int Width
         {
             get { return _lineWidth; }
         }
         private int _lineHeight;
-        public int Height
+        public override int Height
         {
             get { return _lineHeight; }
         }
@@ -73,13 +73,13 @@ namespace ConsoleWrapper
 
         private string _displayString;
 
-        public void Invalidate()
+        public override void Invalidate()
         {
             _valid = false;
         }
 
         // Rebuilds the object if it happens to get lost eg on a device reset
-        public void Rebuild(Device device)
+        public override void Rebuild(Device device)
         {
             if (_valid || _building)
                 return;
@@ -134,8 +134,6 @@ namespace ConsoleWrapper
                 {
                     try
                     {
-                        Animate(0);
-
                         int firstTick = Environment.TickCount;
                         System.Drawing.Font font = new System.Drawing.Font(_fontFace, _fontSize);
                         Bitmap b = new Bitmap(_lineWidth, _lineHeight, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
@@ -148,7 +146,7 @@ namespace ConsoleWrapper
                         g.DrawString(_displayString, font, new SolidBrush(Color.White), new PointF(0, 0));
                         //TextRenderer.DrawText(g, _displayString, font, new Point(0, 0), Color.White);
 
-                        _lineTexture = Texture.FromBitmap(device, b, Usage.Dynamic, Pool.Default);
+                        _lineTexture = Texture.FromBitmap(device, b, Usage.None, Pool.Managed);
 
                         //_lineTexture = new Texture(device, (int)_lineWidth * (int)Math.Pow(2.0, (double)mipLevels), (int)_lineHeight * (int)Math.Pow(2.0, (double)mipLevels), mipLevels + 1, Usage.RenderTarget, Format.Unknown, Pool.Default);
 
@@ -220,13 +218,13 @@ namespace ConsoleWrapper
                         _lineSprite.SetIndexBufferData(indices, LockFlags.Discard);
                         _lineSprite.SetAttributeTable(attributes);
 
-                        int[] adjacency = new int[_lineSprite.NumberFaces * 3];
-                        _lineSprite.GenerateAdjacency(0.01F, adjacency);
-                        _lineSprite.OptimizeInPlace(MeshFlags.OptimizeVertexCache, adjacency);
+                        //int[] adjacency = new int[_lineSprite.NumberFaces * 3];
+                        //_lineSprite.GenerateAdjacency(0.01F, adjacency);
+                        //_lineSprite.OptimizeInPlace(MeshFlags.OptimizeVertexCache, adjacency);
 
                         _valid = true;
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
                         _valid = false;
                         _lineTexture = null;
@@ -235,7 +233,7 @@ namespace ConsoleWrapper
                     }
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 _valid = false;
                 _lineTexture = null;
@@ -243,6 +241,7 @@ namespace ConsoleWrapper
             }
             finally
             {
+                Animate(0);
                 _building = false;
             }
         }
@@ -269,7 +268,7 @@ namespace ConsoleWrapper
             }
         }
 
-        public void Draw(Device device)
+        public override void Draw(Device device)
         {
             if (!_valid && !_building)
                 Rebuild(device);
@@ -316,7 +315,7 @@ namespace ConsoleWrapper
 
         #region IDisposable Members
 
-        public void Dispose()
+        public override void Dispose()
         {
             if (_lineTexture != null)
             {

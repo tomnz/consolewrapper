@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("ConsoleWrapper")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Renders a console to a 3D DirectX environment")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("ConsoleWrapper")]
-[assembly: AssemblyCopyright("Copyright ©  2006")]
+[assembly: AssemblyCopyright("Copyright © Tom Mitchell 2007-2008")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

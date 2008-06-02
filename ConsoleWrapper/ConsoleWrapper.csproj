@@ -28,9 +28,18 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.DirectX, Version=1.0.2902.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35" />
-    <Reference Include="Microsoft.DirectX.Direct3D, Version=1.0.2902.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35" />
-    <Reference Include="Microsoft.DirectX.Direct3DX, Version=1.0.2908.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35" />
+    <Reference Include="Microsoft.DirectX, Version=1.0.2902.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35">
+      <SpecificVersion>False</SpecificVersion>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.DirectX.Direct3D, Version=1.0.2902.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35">
+      <SpecificVersion>False</SpecificVersion>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.DirectX.Direct3DX, Version=1.0.2908.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35">
+      <SpecificVersion>False</SpecificVersion>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Deployment" />
@@ -47,6 +56,7 @@
       <DependentUpon>ConfigGUI.cs</DependentUpon>
     </Compile>
     <Compile Include="ConsoleString.cs" />
+    <Compile Include="ImageSprite.cs" />
     <Compile Include="DXGUI.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -55,7 +65,7 @@
     </Compile>
     <Compile Include="GraphicsTimer.cs" />
     <Compile Include="IAnimatable.cs" />
-    <Compile Include="IRenderable.cs" />
+    <Compile Include="Renderable.cs" />
     <Compile Include="IWrapper.cs" />
     <Compile Include="IWrapperListener.cs" />
     <Compile Include="LineSprite.cs" />
@@ -95,6 +105,7 @@
   <ItemGroup>
     <Content Include="Config.Default.xml" />
     <Content Include="Config.xml" />
+    <EmbeddedResource Include="Resources\logoImage.gif" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
