@@ -15,6 +15,8 @@ namespace ConsoleWrapper
         private WrapperGraphics _graphics;
         private IWrapper _wrapper;
         private IList<ConsoleString> _currentLines = new List<ConsoleString>();
+        private IList<string> _prevLines = new List<string>();
+        private int _prevLineNum = 0;
         private StringBuilder _currentLine;
         private StringBuilder _currentInput;
         private bool _render = true;
@@ -27,6 +29,7 @@ namespace ConsoleWrapper
         {
             InitializeComponent();
             _currentLine = new StringBuilder();
+            _prevLines.Add("");
             _currentInput = new StringBuilder();
             _graphics = new WrapperGraphics(this);
             _graphics.AddLine(new ConsoleString("Welcome to the DirectX Console Wrapper!", Color.FromArgb(255, 63, 63)));
@@ -74,8 +77,6 @@ namespace ConsoleWrapper
                 this.Render(); // Render on painting
         }
 
-        #region IWrapperListener Members
-
         public void TextReady(IWrapper sender)
         {
             lock (_currentLines)
@@ -104,12 +105,12 @@ namespace ConsoleWrapper
             }
         }
 
-        #endregion
-
         private void DXGUI_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode.Equals(Keys.Enter) || e.KeyCode.Equals(Keys.Return))
             {
+                _prevLines.Insert(_prevLines.Count - 1, _currentInput.ToString());
+                _prevLineNum = _prevLines.Count - 1;
                 _wrapper.SendLine(_currentInput.ToString(), ConsoleString.StringType.Input);
                 _currentInput = new StringBuilder();
             }
@@ -133,6 +134,20 @@ namespace ConsoleWrapper
             else if (e.Control && e.KeyCode.Equals(Keys.Down))
             {
                 _graphics.MoveView(2);
+            }
+            else if (e.KeyCode.Equals(Keys.Up))
+            {
+                _prevLineNum--;
+                _prevLineNum = Math.Max(0, _prevLineNum);
+                _currentInput = new StringBuilder(_prevLines[_prevLineNum]);
+                _graphics.CurrentLine.Text = _currentLine.ToString() + _currentInput.ToString();
+            }
+            else if (e.KeyCode.Equals(Keys.Down))
+            {
+                _prevLineNum++;
+                _prevLineNum = Math.Min(_prevLines.Count - 1, _prevLineNum);
+                _currentInput = new StringBuilder(_prevLines[_prevLineNum]);
+                _graphics.CurrentLine.Text = _currentLine.ToString() + _currentInput.ToString();
             }
             else if (e.KeyCode.Equals(Keys.PageUp))
             {
@@ -166,7 +181,6 @@ namespace ConsoleWrapper
                 }
             }
             _graphics.CurrentLine.Text = _currentLine.ToString() + _currentInput.ToString();
-
         }
 
         private void DXGUI_ResizeBegin(object sender, EventArgs e)

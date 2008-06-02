@@ -192,32 +192,45 @@ namespace ConsoleWrapper
 
         private void AlertListeners()
         {
-            if(!_alerting)
-                _alerting = true;
-
-            // 40 ms wait time between alerts as text may
-            // be coming in in single character chunks
-            Thread.Sleep(40);
-
-            _alerting = false;
-
-            lock (_listeners)
+            try
             {
-                foreach (IWrapperListener listener in _listeners)
+                if (!_alerting)
+                    _alerting = true;
+
+                // 40 ms wait time between alerts as text may
+                // be coming in in single character chunks
+                Thread.Sleep(40);
+
+                _alerting = false;
+
+                lock (_listeners)
                 {
-                    listener.TextReady(this);
+                    foreach (IWrapperListener listener in _listeners)
+                    {
+                        listener.TextReady(this);
+                    }
                 }
+            }
+            catch (ThreadAbortException)
+            {
+                // Don't really need to do any sort of cleanup here
             }
         }
 
         private void AlertListenersFinished()
         {
-            lock (_listeners)
+            try
             {
-                foreach (IWrapperListener listener in _listeners)
+                lock (_listeners)
                 {
-                    listener.WrapperFinished();
+                    foreach (IWrapperListener listener in _listeners)
+                    {
+                        listener.WrapperFinished();
+                    }
                 }
+            }
+            catch (ThreadAbortException)
+            {
             }
         }
 
@@ -226,53 +239,63 @@ namespace ConsoleWrapper
         {
             lock(_stdout)
             {
-                while (_active && !_stdout.EndOfStream)
+                try
                 {
-                    // This seems the most efficient way of getting text
-                    // as I can't find a blocking stream read method
-                    if (_active && _stdout.Peek() != -1)
+                    while (_active && !_stdout.EndOfStream)
                     {
-                        StringBuilder outStr = new StringBuilder();
-                        outStr.Append((char)_stdout.Read());
-
-                        int startTime = Environment.TickCount;
-
-                        while (_stdout.Peek() != -1)
+                        // This seems the most efficient way of getting text
+                        // as I can't find a blocking stream read method
+                        if (_active && _stdout.Peek() != -1)
                         {
+                            StringBuilder outStr = new StringBuilder();
                             outStr.Append((char)_stdout.Read());
 
-                            // Once the buffer has filled sufficiently or
-                            // after 40ms
-                            if (outStr.Length > 100 || Environment.TickCount - startTime > 40)
+                            int startTime = Environment.TickCount;
+
+                            while (_stdout.Peek() != -1)
                             {
-                                OutputAppend(outStr.ToString(), ConsoleString.StringType.Out);
-                                outStr = new StringBuilder();
+                                outStr.Append((char)_stdout.Read());
+
+                                // Once the buffer has filled sufficiently or
+                                // after 40ms
+                                if (outStr.Length > 100 || Environment.TickCount - startTime > 40 || 
+                                    outStr.ToString().Contains("\n"))
+                                {
+                                    OutputAppend(outStr.ToString(), ConsoleString.StringType.Out);
+                                    outStr = new StringBuilder();
+                                }
+                            }
+
+                            OutputAppend(outStr.ToString(), ConsoleString.StringType.Out);
+                        }
+
+                        //Thread.Sleep(50)
+                    }
+                    // Alert the listeners that we are finished
+                    if (_alertListenersFinished != null)
+                    {
+                        if (_alertListenersFinished.IsAlive)
+                        {
+                            // Give thread some time to exit
+                            if (!_alertListenersFinished.Join(100))
+                            {
+                                _alertListenersFinished.Abort();
+                                _alertListenersFinished.Join();
                             }
                         }
-
-                        OutputAppend(outStr.ToString(), ConsoleString.StringType.Out);
+                        _alertListenersFinished = null;
                     }
-                    
-                    //Thread.Sleep(50);
+                    _alertListenersFinished = new Thread(new ThreadStart(AlertListenersFinished));
+                    _alertListenersFinished.Start();
+                    _alertListenersFinished.Join();
                 }
-
-                // Alert the listeners that we are finished
-                if (_alertListenersFinished != null)
+                catch (ThreadAbortException)
                 {
-                    if (_alertListenersFinished.IsAlive)
-                    {
-                        // Give thread some time to exit
-                        if (!_alertListenersFinished.Join(100))
-                        {
-                            _alertListenersFinished.Abort();
-                            _alertListenersFinished.Join();
-                        }
-                    }
-                    _alertListenersFinished = null;
                 }
-                _alertListenersFinished = new Thread(new ThreadStart(AlertListenersFinished));
-                _alertListenersFinished.Start();
-                _alertListenersFinished.Join();
+                finally
+                {
+
+                }
             }
         }
 
