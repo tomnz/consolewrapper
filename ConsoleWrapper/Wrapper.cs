@@ -5,6 +5,8 @@ using System.IO;
 using System.Data;
 using System.Diagnostics;
 using System.Threading;
+using System.Windows.Forms;
+using System.Runtime.InteropServices;
 
 namespace ConsoleWrapper
 {
@@ -391,5 +393,6 @@ namespace ConsoleWrapper
         }
 
         #endregion
+
     }
 }

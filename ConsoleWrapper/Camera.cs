@@ -15,6 +15,8 @@ namespace ConsoleWrapper
         private Vector3 _velLook = new Vector3(0, 0, 0);
 
         private float _aspectRatio = 1.0f;
+        private int _width;
+        private int _height;
         public float AspectRatio
         {
             get { return _aspectRatio; }
@@ -66,7 +68,7 @@ namespace ConsoleWrapper
             _targetLookAt = lookAt;
         }
 
-        public Camera(Vector3 location, Vector3 lookAt, float aspectRatio)
+        public Camera(Vector3 location, Vector3 lookAt, float aspectRatio, int width, int height)
         {
             _location = location;
             _lightLocation = location;
@@ -77,6 +79,8 @@ namespace ConsoleWrapper
             _targetLookAt = lookAt;
 
             _aspectRatio = aspectRatio;
+            _width = width;
+            _height = height;
         }
 
         public void Animate(float time, Light light)
@@ -146,6 +150,7 @@ namespace ConsoleWrapper
             // the aspect ratio, and the near and far clipping planes (which define at
             // what distances geometry should be no longer be rendered).
             _projectionMatrix = Matrix.PerspectiveFovLH((float)(Math.PI / 4), _aspectRatio, 1.0f, 2500.0f);
+            //_projectionMatrix = Matrix.OrthoLH(_width, _height, 1000.0f, -1000.0f);
 
             device.Transform.Projection = _projectionMatrix;
         }

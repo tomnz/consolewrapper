@@ -165,6 +165,10 @@ namespace ConsoleWrapper
             {
                 _graphics.MoveViewEnd();
             }
+            else if (e.KeyCode.Equals(Keys.Tab))
+            {
+                //_wrapper.SendKey(e, false);
+            }
         }
 
         private void DXGUI_KeyPress(object sender, KeyPressEventArgs e)
@@ -207,6 +211,15 @@ namespace ConsoleWrapper
         private void DXGUI_Resize(object sender, EventArgs e)
         {
             _graphics.InitializeGraphics(this);
+        }
+
+        private void DXGUI_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode.Equals(Keys.Tab))
+            {
+                //_wrapper.SendKey(e, true);
+            }
+
         }
 
     }

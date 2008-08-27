@@ -109,7 +109,7 @@ namespace ConsoleWrapper
                 this.OnCreateDevice(_device, null);
 
                 if (_camera == null)
-                    _camera = new Camera(new Vector3(_viewX, _viewY, _camLocationDiff), new Vector3(_viewX, 0, _camLookAtDiff), (float)parent.Width / parent.Height);
+                    _camera = new Camera(new Vector3(_viewX, _viewY, _camLocationDiff), new Vector3(_viewX, 0, _camLookAtDiff), (float)parent.Width / parent.Height, parent.Width, parent.Height);
                 else
                     _camera.AspectRatio = (float)parent.Width / parent.Height;
 

@@ -113,8 +113,6 @@ namespace ConsoleWrapper
                 {
                     try
                     {
-                        int firstTick = Environment.TickCount;
-
                         _imageTexture = Texture.FromBitmap(device, _bitmap, Usage.Dynamic, Pool.Default);
 
                         // Set up the material
