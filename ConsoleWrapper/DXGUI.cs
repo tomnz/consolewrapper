@@ -19,6 +19,7 @@ namespace ConsoleWrapper
         private int _prevLineNum = 0;
         private StringBuilder _currentLine;
         private StringBuilder _currentInput;
+        private int _currentInputLocation;
         private bool _render = true;
 
         delegate void CloseForm();
@@ -31,6 +32,7 @@ namespace ConsoleWrapper
             _currentLine = new StringBuilder();
             _prevLines.Add("");
             _currentInput = new StringBuilder();
+            _currentInputLocation = 0;
             _graphics = new WrapperGraphics(this);
             _graphics.AddLine(new ConsoleString("Welcome to the DirectX Console Wrapper!", Color.FromArgb(255, 63, 63)));
             _graphics.AddLine(new ConsoleString("Use Ctrl-(Up/Down/Home/End) :: PageUp/PageDown :: MouseWheel for navigation.", Color.FromArgb(255, 127, 0)));
@@ -67,14 +69,13 @@ namespace ConsoleWrapper
                     }
                 }
 
-                _graphics.CurrentLine = new ConsoleString(_currentLine.ToString() + _currentInput.ToString(), ConsoleString.StringType.Normal);
+                UpdateCurrentLine();
             }
         }
 
         protected override void OnPaint(System.Windows.Forms.PaintEventArgs e)
         {
-            if (_render)
-                this.Render(); // Render on painting
+            Render(); // Render on painting
         }
 
         public void TextReady(IWrapper sender)
@@ -105,6 +106,16 @@ namespace ConsoleWrapper
             }
         }
 
+        private void UpdateCurrentLine()
+        {
+            _graphics.CurrentLine.Text = CurrentLineWithCaret();
+        }
+
+        private string CurrentLineWithCaret()
+        {
+            return _currentLine.ToString() + _currentInput.ToString().Insert(_currentInputLocation, "|");
+        }
+
         private void DXGUI_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode.Equals(Keys.Enter) || e.KeyCode.Equals(Keys.Return))
@@ -113,20 +124,51 @@ namespace ConsoleWrapper
                 _prevLineNum = _prevLines.Count - 1;
                 _wrapper.SendLine(_currentInput.ToString(), ConsoleString.StringType.Input);
                 _currentInput = new StringBuilder();
+                _currentInputLocation = 0;
             }
             else if (e.KeyCode.Equals(Keys.Back))
             {
-                if (_currentInput.Length > 0)
+                if (_currentInput.Length > 0 && _currentInputLocation > 0)
                 {
-                    _currentInput.Remove(_currentInput.Length - 1, 1);
+                    _currentInput.Remove(_currentInputLocation - 1, 1);
+                    _currentInputLocation--;
+                    UpdateCurrentLine();
                 }
             }
-            //else if (e.KeyCode.Equals(Keys.F10))
-            //{
-            //    ConfigGUI config = new ConfigGUI();
-            //    config.Show();
-            //    Application.DoEvents();
-            //}
+            else if (e.KeyCode.Equals(Keys.Delete))
+            {
+                if (_currentInput.Length > 0 && _currentInputLocation < _currentInput.Length)
+                {
+                    _currentInput.Remove(_currentInputLocation, 1);
+                    UpdateCurrentLine();
+                }
+            }
+            else if (e.KeyCode.Equals(Keys.Left))
+            {
+                if (_currentInputLocation > 0)
+                {
+                    _currentInputLocation--;
+                    UpdateCurrentLine();
+                }
+            }
+            else if (e.KeyCode.Equals(Keys.Right))
+            {
+                if (_currentInputLocation < _currentInput.Length)
+                {
+                    _currentInputLocation++;
+                    UpdateCurrentLine();
+                }
+            }
+            else if (e.KeyCode.Equals(Keys.Home))
+            {
+                _currentInputLocation = 0;
+                UpdateCurrentLine();
+            }
+            else if (e.KeyCode.Equals(Keys.End))
+            {
+                _currentInputLocation = _currentInput.Length;
+                UpdateCurrentLine();
+            }
             else if (e.Control && e.KeyCode.Equals(Keys.Up))
             {
                 _graphics.MoveView(-2);
@@ -140,14 +182,16 @@ namespace ConsoleWrapper
                 _prevLineNum--;
                 _prevLineNum = Math.Max(0, _prevLineNum);
                 _currentInput = new StringBuilder(_prevLines[_prevLineNum]);
-                _graphics.CurrentLine.Text = _currentLine.ToString() + _currentInput.ToString();
+                _currentInputLocation = _currentInput.Length;
+                _graphics.CurrentLine.Text = CurrentLineWithCaret();
             }
             else if (e.KeyCode.Equals(Keys.Down))
             {
                 _prevLineNum++;
                 _prevLineNum = Math.Min(_prevLines.Count - 1, _prevLineNum);
                 _currentInput = new StringBuilder(_prevLines[_prevLineNum]);
-                _graphics.CurrentLine.Text = _currentLine.ToString() + _currentInput.ToString();
+                _currentInputLocation = _currentInput.Length;
+                _graphics.CurrentLine.Text = CurrentLineWithCaret();
             }
             else if (e.KeyCode.Equals(Keys.PageUp))
             {
@@ -177,14 +221,15 @@ namespace ConsoleWrapper
             {
                 if (e.KeyChar == '\\')
                 {
-                    _currentInput.Append('\\');
+                    _currentInput.Insert(_currentInputLocation, '\\');
                 }
                 else
                 {
-                    _currentInput.Append(e.KeyChar);
+                    _currentInput.Insert(_currentInputLocation, e.KeyChar);
                 }
+                _currentInputLocation++;
             }
-            _graphics.CurrentLine.Text = _currentLine.ToString() + _currentInput.ToString();
+            UpdateCurrentLine();
         }
 
         private void DXGUI_ResizeBegin(object sender, EventArgs e)
