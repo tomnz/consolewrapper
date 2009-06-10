@@ -24,6 +24,8 @@ namespace ConsoleWrapper
         private bool _paused = false;
         private bool _deviceLost = false;
 
+        private bool _recovering = false;
+
         public bool Paused
         {
             get 
@@ -89,6 +91,20 @@ namespace ConsoleWrapper
             {
                 MessageBox.Show("Error: DirectX failed to initialize.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+            else
+            {
+
+                System.Reflection.Assembly ass = System.Reflection.Assembly.GetExecutingAssembly();
+                System.IO.Stream logoStream = ass.GetManifestResourceStream("ConsoleWrapper.Resources.logoImage.gif");
+
+                if (logoStream != null)
+                {
+                    // Display logo
+                    System.Drawing.Bitmap b = (Bitmap)System.Drawing.Bitmap.FromStream(logoStream);
+                    _lines.Add(new ImageSprite(b, _device));
+                    _numLines++;
+                }
+            }
         }
 
         public bool InitializeGraphics(Control parent)
@@ -125,17 +141,6 @@ namespace ConsoleWrapper
         {
             Device dev = (Device)sender;
             _timer = new GraphicsTimer();
-
-            System.Reflection.Assembly ass = System.Reflection.Assembly.GetExecutingAssembly();
-            System.IO.Stream logoStream = ass.GetManifestResourceStream("ConsoleWrapper.Resources.logoImage.gif");
-
-            if (logoStream != null)
-            {
-                // Display logo
-                System.Drawing.Bitmap b = (Bitmap)System.Drawing.Bitmap.FromStream(logoStream);
-                _lines.Add(new ImageSprite(b, _device));
-                _numLines++;
-            }
 
             this.OnResetDevice(sender, e);
         }
@@ -178,9 +183,13 @@ namespace ConsoleWrapper
 
         public void OnLostDevice(object sender, EventArgs e)
         {
+            if (_recovering) return;
+
             _deviceLost = true;
-            //OnDeviceDispose(sender, e);
+
+            _recovering = true;
             RecoverDevice();
+            _recovering = false;
         }
 
         public void OnDeviceDispose(object sender, EventArgs e)
@@ -328,13 +337,14 @@ namespace ConsoleWrapper
             {
                 try
                 {
-                    _device.Reset(_presentParams);
                     _deviceLost = false;
+                    _paused = false;
+                    _device.Reset(_presentParams);
                 }
                 catch (DeviceLostException)
                 {
-                    // If it's still lost or lost again, just do 
-                    // nothing
+                    _deviceLost = true;
+                    _paused = true;
                 }
             }
         }
