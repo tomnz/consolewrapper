@@ -209,9 +209,11 @@ namespace ConsoleWrapper
             {
                 _graphics.MoveViewEnd();
             }
-            else if (e.KeyCode.Equals(Keys.Tab))
+            else if (e.Control && e.KeyCode.Equals(Keys.C))
             {
-                //_wrapper.SendKey(e, false);
+                _wrapper.Dispose();
+                _wrapper = new Wrapper("cmd.exe");
+                _wrapper.AddListener(this);
             }
         }
 
