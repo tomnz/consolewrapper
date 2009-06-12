@@ -38,7 +38,7 @@ namespace ConsoleWrapper
             _graphics.AddLine(new ConsoleString("Use Ctrl-(Up/Down/Home/End) :: PageUp/PageDown :: MouseWheel for navigation.", Color.FromArgb(255, 127, 0)));
             _graphics.AddLine(new ConsoleString("ConsoleWrapper Copyright (c) Tom Mitchell 2007-2008", Color.FromArgb(255, 255, 0)));
             _graphics.AddLine(new ConsoleString(" "));
-            _wrapper = new Wrapper("cmd.exe");
+            _wrapper = new WrapperShell();
             _wrapper.AddListener(this);
         }
 
@@ -93,7 +93,12 @@ namespace ConsoleWrapper
             ProcessText();
         }
 
-        public void WrapperFinished()
+        public void WrapperFinished(IWrapper sender)
+        {
+            WrapperFinished();
+        }
+
+        private void WrapperFinished()
         {
             if (this.InvokeRequired)
             {
@@ -122,7 +127,7 @@ namespace ConsoleWrapper
             {
                 _prevLines.Insert(_prevLines.Count - 1, _currentInput.ToString());
                 _prevLineNum = _prevLines.Count - 1;
-                _wrapper.SendLine(_currentInput.ToString(), ConsoleString.StringType.Input);
+                _wrapper.SendLine(_currentInput.ToString() + Environment.NewLine, ConsoleString.StringType.Input);
                 _currentInput = new StringBuilder();
                 _currentInputLocation = 0;
             }

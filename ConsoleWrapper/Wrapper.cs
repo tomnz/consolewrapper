@@ -31,6 +31,11 @@ namespace ConsoleWrapper
         private bool _hasNextType = false;
 
         public Wrapper(String appName)
+            : this(appName, "", Directory.GetCurrentDirectory())
+        {
+        }
+
+        public Wrapper(String appName, String args, String workingDirectory)
         {
             // Initialise members
             _listeners = new List<IWrapperListener>();
@@ -40,6 +45,8 @@ namespace ConsoleWrapper
             // Set up the process for starting
             _process = new Process();
             _process.StartInfo.FileName = appName;
+            _process.StartInfo.Arguments = args;
+            _process.StartInfo.WorkingDirectory = workingDirectory;
             _process.StartInfo.UseShellExecute = false;
             _process.StartInfo.RedirectStandardError = true;
             _process.StartInfo.RedirectStandardInput = true;
@@ -97,6 +104,9 @@ namespace ConsoleWrapper
                     // Dispose managed resources
                     if (_process != null)
                     {
+                        if (!_process.HasExited)
+                            _process.Kill();
+
                         _process.Close();
                         _process.Dispose();
                         _process = null;
@@ -227,7 +237,7 @@ namespace ConsoleWrapper
                 {
                     foreach (IWrapperListener listener in _listeners)
                     {
-                        listener.WrapperFinished();
+                        listener.WrapperFinished(this);
                     }
                 }
             }
