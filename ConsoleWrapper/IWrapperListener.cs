@@ -7,6 +7,6 @@ namespace ConsoleWrapper
     public interface IWrapperListener
     {
         void TextReady(IWrapper sender);
-        void WrapperFinished();
+        void WrapperFinished(IWrapper sender);
     }
 }

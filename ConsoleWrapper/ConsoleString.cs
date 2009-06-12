@@ -15,7 +15,8 @@ namespace ConsoleWrapper
             Normal,
             Out,
             Err,
-            Input
+            Input,
+            Special
         }
 
         private string _text;
@@ -60,6 +61,10 @@ namespace ConsoleWrapper
                         case ConsoleString.StringType.Input:
                             {
                                 return Color.LightGreen;
+                            }
+                        case ConsoleString.StringType.Special:
+                            {
+                                return Color.Aqua;
                             }
                         default:
                             {

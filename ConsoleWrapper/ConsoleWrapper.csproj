@@ -56,6 +56,7 @@
       <DependentUpon>ConfigGUI.cs</DependentUpon>
     </Compile>
     <Compile Include="ConsoleString.cs" />
+    <Compile Include="WrapperShell.cs" />
     <Compile Include="ImageSprite.cs" />
     <Compile Include="DXGUI.cs">
       <SubType>Form</SubType>
