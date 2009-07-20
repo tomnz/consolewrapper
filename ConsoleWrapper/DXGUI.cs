@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Text;
 using System.Windows.Forms;
 using Microsoft.DirectX;
@@ -54,7 +55,7 @@ namespace ConsoleWrapper
         {
             lock (_currentLines)
             {
-                if (_currentLines.Count > 1)
+                if (_currentLines.Count > 0)
                 {
                     ConsoleString[] lines = new ConsoleString[_currentLines.Count];
                     _currentLines.CopyTo(lines, 0);
@@ -127,7 +128,7 @@ namespace ConsoleWrapper
             {
                 _prevLines.Insert(_prevLines.Count - 1, _currentInput.ToString());
                 _prevLineNum = _prevLines.Count - 1;
-                _wrapper.SendLine(_currentInput.ToString() + Environment.NewLine, ConsoleString.StringType.Input);
+                _wrapper.SendLine(_currentInput.ToString(), ConsoleString.StringType.Input);
                 _currentInput = new StringBuilder();
                 _currentInputLocation = 0;
             }
@@ -216,8 +217,9 @@ namespace ConsoleWrapper
             }
             else if (e.Control && e.KeyCode.Equals(Keys.C))
             {
+                DirectoryInfo currentDirectory = ((WrapperShell)_wrapper).CurrentDirectory;
                 _wrapper.Dispose();
-                _wrapper = new Wrapper("cmd.exe");
+                _wrapper = new WrapperShell(currentDirectory);
                 _wrapper.AddListener(this);
             }
         }
