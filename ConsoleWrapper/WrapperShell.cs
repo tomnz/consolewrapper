@@ -27,6 +27,11 @@ namespace ConsoleWrapper
         private bool _hasNextType = false;
         private DirectoryInfo _currentDirectory;
 
+        public DirectoryInfo CurrentDirectory
+        {
+            get { return _currentDirectory; }
+        }
+
         public WrapperShell()
             : this (new DirectoryInfo(Directory.GetCurrentDirectory()))
         {
@@ -81,6 +86,10 @@ namespace ConsoleWrapper
                 if (disposeManagedResources)
                 {
                     // Dispose managed resources
+                    foreach (IWrapper wrapper in _wrappers)
+                    {
+                        wrapper.Dispose();
+                    }
                 }
                 // Dispose unmanaged resources
                 if (_alertListeners != null)
@@ -116,7 +125,7 @@ namespace ConsoleWrapper
 
                 for (int i = 0; i < lines.Length - 1; i++)
                 {
-                    if (_hasNextType && type != ConsoleString.StringType.Special)
+                    if (_hasNextType && type == ConsoleString.StringType.Normal)
                         _availableLines.Add(new ConsoleString(lines[i], _nextType));
                     else
                         _availableLines.Add(new ConsoleString(lines[i], type));
@@ -169,6 +178,8 @@ namespace ConsoleWrapper
 
                 while (_newAlerts)
                 {
+                    _newAlerts = false;
+
                     // 40 ms wait time between alerts as text may
                     // be coming in in single character chunks
                     Thread.Sleep(40);
@@ -210,49 +221,60 @@ namespace ConsoleWrapper
 
         private void ParseInput(String line, ConsoleString.StringType type)
         {
-            String[] args = line.Split(' ');
-
-            switch (args[0])
+            if (_wrappers.Count > 0)
             {
-                case "exit":
-                    {
-                        AlertListenersFinished();
-                        return;
-                    }
-                case "cd":
-                    {
-                        try
-                        {
-                            Directory.SetCurrentDirectory(args[1]);
-                            _currentDirectory = new DirectoryInfo(args[1]);
+                OutputAppend(line + Environment.NewLine, type);
 
-                            OutputAppend(Environment.NewLine);
-                        }
-                        catch (DirectoryNotFoundException)
-                        {
-                            OutputAppend("Directory not found: " + args[1] + Environment.NewLine, ConsoleString.StringType.Err);
-                        }
-                    } break;
-                default:
-                    {
-                        if (_wrappers.Count < 1)
-                        {
-                            Wrapper wrapper = new Wrapper("cmd.exe", "/c " + line, _currentDirectory.FullName);
-                            wrapper.AddListener(this);
-
-                            _wrappers.Add(wrapper);
-                        }
-                        else
-                        {
-                            foreach (IWrapper wrapper in _wrappers)
-                            {
-                                wrapper.SendLine(line, type);
-                            }
-                        }
-                    } break;
+                foreach (IWrapper wrapper in _wrappers)
+                {
+                    wrapper.SendLine(line, type);
+                }
             }
+            else
+            {
+                String[] args = line.Split(' ');
 
-            ShowDirectory();
+                switch (args[0])
+                {
+                    case "exit":
+                        {
+                            AlertListenersFinished();
+                            return;
+                        }
+                    case "cd":
+                        {
+                            try
+                            {
+                                Directory.SetCurrentDirectory(args[1]);
+                                _currentDirectory = new DirectoryInfo(args[1]);
+
+                                OutputAppend(Environment.NewLine);
+                            }
+                            catch (DirectoryNotFoundException)
+                            {
+                                OutputAppend("Directory not found: " + args[1] + Environment.NewLine, ConsoleString.StringType.Err);
+                            }
+                        } break;
+                    default:
+                        {
+                            OutputAppend(line + Environment.NewLine);
+
+                            try
+                            {
+                                Wrapper wrapper = new Wrapper("cmd.exe", "/c " + line, _currentDirectory.FullName);
+                                wrapper.AddListener(this);
+
+                                _wrappers.Add(wrapper);
+                            }
+                            catch (Exception e)
+                            {
+                                OutputAppend(e.Message + Environment.NewLine, ConsoleString.StringType.Err);
+                            }
+                        } break;
+                }
+
+                ShowDirectory();
+            }
         }
 
         #region IWrapper Members
@@ -267,27 +289,32 @@ namespace ConsoleWrapper
 
         public ConsoleString[] GetText()
         {
+            ConsoleString[] output;
+
             lock (_availableLines)
             {
-                ConsoleString[] output = new ConsoleString[_availableLines.Count];
+                output = new ConsoleString[_availableLines.Count];
                 
                 _availableLines.CopyTo(output, 0);
 
                 _availableLines.Clear();
-                return output;
             }
+
+            return output;
         }
 
         public ConsoleString[] PeekText()
         {
+            ConsoleString[] output;
+
             lock (_availableLines)
             {
-                ConsoleString[] output = new ConsoleString[_availableLines.Count];
+                output = new ConsoleString[_availableLines.Count];
 
                 _availableLines.CopyTo(output, 0);
-
-                return output;
             }
+
+            return output;
         }
 
         public void SendLine(string line, ConsoleString.StringType type)
@@ -328,10 +355,16 @@ namespace ConsoleWrapper
             //_currentLine = new StringBuilder(_wrapper.GetCurrentLine());
 
             ConsoleString[] strings = sender.GetText();
-            foreach (ConsoleString str in strings)
+
+            lock (_availableLines)
             {
-                _availableLines.Add(str);
+                foreach (ConsoleString str in strings)
+                {
+                    _availableLines.Add(str);
+                }
             }
+
+            _currentLine = strings[strings.Length - 1].Text;
 
             StartAlertListeners();
         }
@@ -339,6 +372,11 @@ namespace ConsoleWrapper
         public void WrapperFinished(IWrapper sender)
         {
             _wrappers.Remove(sender);
+
+            if (_wrappers.Count == 0)
+            {
+                _currentLine = _currentDirectory.FullName + "> ";
+            }
         }
 
         #endregion

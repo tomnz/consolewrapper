@@ -231,6 +231,13 @@ namespace ConsoleWrapper
 
         private void AlertListenersFinished()
         {
+            while (_alerting)
+            {
+                // Wait till we've finished alerting before we announce that
+                // we have truly finished
+                Thread.Sleep(40);
+            }
+
             try
             {
                 lock (_listeners)
