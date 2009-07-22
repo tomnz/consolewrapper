@@ -85,10 +85,13 @@ namespace ConsoleWrapper
             {
                 if (disposeManagedResources)
                 {
-                    // Dispose managed resources
-                    foreach (IWrapper wrapper in _wrappers)
+                    lock (_wrappers)
                     {
-                        wrapper.Dispose();
+                        // Dispose managed resources
+                        foreach (IWrapper wrapper in _wrappers)
+                        {
+                            wrapper.Dispose();
+                        }
                     }
                 }
                 // Dispose unmanaged resources
@@ -225,9 +228,12 @@ namespace ConsoleWrapper
             {
                 OutputAppend(line + Environment.NewLine, type);
 
-                foreach (IWrapper wrapper in _wrappers)
+                lock (_wrappers)
                 {
-                    wrapper.SendLine(line, type);
+                    foreach (IWrapper wrapper in _wrappers)
+                    {
+                        wrapper.SendLine(line, type);
+                    }
                 }
             }
             else
@@ -243,17 +249,8 @@ namespace ConsoleWrapper
                         }
                     case "cd":
                         {
-                            try
-                            {
-                                Directory.SetCurrentDirectory(args[1]);
-                                _currentDirectory = new DirectoryInfo(args[1]);
-
-                                OutputAppend(Environment.NewLine);
-                            }
-                            catch (DirectoryNotFoundException)
-                            {
-                                OutputAppend("Directory not found: " + args[1] + Environment.NewLine, ConsoleString.StringType.Err);
-                            }
+                            OutputAppend(line + Environment.NewLine);
+                            ChangeDirectory(args[1]);
                         } break;
                     default:
                         {
@@ -264,7 +261,10 @@ namespace ConsoleWrapper
                                 Wrapper wrapper = new Wrapper("cmd.exe", "/c " + line, _currentDirectory.FullName);
                                 wrapper.AddListener(this);
 
-                                _wrappers.Add(wrapper);
+                                lock (_wrappers)
+                                {
+                                    _wrappers.Add(wrapper);
+                                }
                             }
                             catch (Exception e)
                             {
@@ -276,6 +276,39 @@ namespace ConsoleWrapper
                 ShowDirectory();
             }
         }
+
+        #region Commands
+
+        /// <summary>
+        /// Attempts to find the directory specified by "directory".
+        /// Takes into account the current directory.
+        /// </summary>
+        /// <param name="directory">Directory to look for</param>
+        public void ChangeDirectory(string directory)
+        {
+            try
+            {
+                Directory.SetCurrentDirectory(directory);
+            }
+            catch (DirectoryNotFoundException)
+            {
+                try
+                {
+                    Directory.SetCurrentDirectory(Path.GetFullPath(Path.Combine(_currentDirectory.FullName, directory)));
+                }
+                catch (DirectoryNotFoundException)
+                {
+                    OutputAppend("Directory not found: " + directory + Environment.NewLine, ConsoleString.StringType.Err);
+                }
+            }
+            catch (Exception e)
+            {
+                OutputAppend("Cannot change directory: " + e.Message + Environment.NewLine, ConsoleString.StringType.Err);
+            }
+            _currentDirectory = new DirectoryInfo(Directory.GetCurrentDirectory());
+        }
+
+        #endregion
 
         #region IWrapper Members
 
@@ -327,17 +360,23 @@ namespace ConsoleWrapper
 
         public void SendCharacter(char character, bool flush)
         {
-            foreach (IWrapper wrapper in _wrappers)
+            lock (_wrappers)
             {
-                wrapper.SendCharacter(character, flush);
+                foreach (IWrapper wrapper in _wrappers)
+                {
+                    wrapper.SendCharacter(character, flush);
+                }
             }
         }
 
         public void Send(string text, bool flush)
         {
-            foreach (IWrapper wrapper in _wrappers)
+            lock (_wrappers)
             {
-                wrapper.Send(text, flush);
+                foreach (IWrapper wrapper in _wrappers)
+                {
+                    wrapper.Send(text, flush);
+                }
             }
         }
 
@@ -371,7 +410,10 @@ namespace ConsoleWrapper
 
         public void WrapperFinished(IWrapper sender)
         {
-            _wrappers.Remove(sender);
+            lock (_wrappers)
+            {
+                _wrappers.Remove(sender);
+            }
 
             if (_wrappers.Count == 0)
             {

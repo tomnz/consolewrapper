@@ -165,6 +165,14 @@ namespace ConsoleWrapper
                     UpdateCurrentLine();
                 }
             }
+            else if (e.Control && e.KeyCode.Equals(Keys.Home))
+            {
+                _graphics.MoveViewHome();
+            }
+            else if (e.Control && e.KeyCode.Equals(Keys.End))
+            {
+                _graphics.MoveViewEnd();
+            }
             else if (e.KeyCode.Equals(Keys.Home))
             {
                 _currentInputLocation = 0;
@@ -206,14 +214,6 @@ namespace ConsoleWrapper
             else if (e.KeyCode.Equals(Keys.PageDown))
             {
                 _graphics.MoveView(30);
-            }
-            else if (e.Control && e.KeyCode.Equals(Keys.Home))
-            {
-                _graphics.MoveViewHome();
-            }
-            else if (e.Control && e.KeyCode.Equals(Keys.End))
-            {
-                _graphics.MoveViewEnd();
             }
             else if (e.Control && e.KeyCode.Equals(Keys.C))
             {
