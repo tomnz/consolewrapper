@@ -72,8 +72,8 @@ namespace ConsoleWrapper
         // The following two are used to make sure the text
         // goes to the bottom of the view and that we are
         // viewing at an angle
-        private float _camLookAtDiff = 290.0f;
-        private float _camLocationDiff = 290.0f;
+        private float _camLookAtDiff = 270.0f;
+        private float _camLocationDiff = 270.0f;
         // The current line that the camera is at
         private int _viewLine = 0;
         // Keeps record of the number of lines
