@@ -238,9 +238,11 @@ namespace ConsoleWrapper
             }
             else
             {
-                String[] args = line.Split(' ');
+                string command = line.Split(' ')[0];
+                string args = line.Substring(line.IndexOf(' ') + 1);
+                string[] splitLine = line.Split(new string[] { " ", "\n", "\n\r", Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
 
-                switch (args[0])
+                switch (command)
                 {
                     case "exit":
                         {
@@ -250,7 +252,7 @@ namespace ConsoleWrapper
                     case "cd":
                         {
                             OutputAppend(line + Environment.NewLine);
-                            ChangeDirectory(args[1]);
+                            ChangeDirectory(args);
                         } break;
                     default:
                         {

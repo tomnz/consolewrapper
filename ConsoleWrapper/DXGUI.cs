@@ -264,7 +264,8 @@ namespace ConsoleWrapper
 
         private void DXGUI_Resize(object sender, EventArgs e)
         {
-            _graphics.InitializeGraphics(this);
+            if (this.WindowState != FormWindowState.Minimized)
+                _graphics.InitializeGraphics(this);
         }
 
         private void DXGUI_KeyUp(object sender, KeyEventArgs e)
