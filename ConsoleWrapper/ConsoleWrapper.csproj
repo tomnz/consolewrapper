@@ -2,7 +2,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>8.0.50727</ProductVersion>
+    <ProductVersion>9.0.21022</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{798687A0-7176-473F-8FEA-1C22F118C5F5}</ProjectGuid>
     <OutputType>WinExe</OutputType>
@@ -109,8 +109,12 @@
     <Compile Include="WrapperGraphics.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Config.Default.xml" />
-    <Content Include="Config.xml" />
+    <Content Include="Config.Default.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Config.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <EmbeddedResource Include="Resources\logoImage.gif" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

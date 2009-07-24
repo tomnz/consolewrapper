@@ -18,7 +18,7 @@ namespace ConsoleWrapper
 
         public WrapperConfig()
         {
-            XmlTextReader reader = new XmlTextReader("Config.xml");
+            XmlTextReader reader = new XmlTextReader(System.Windows.Forms.Application.StartupPath + "\\Config.xml");
             _xmldoc = new XmlDocument();
             _xmldoc.Load(reader);
         }

@@ -18,7 +18,6 @@ namespace ConsoleWrapper
         private StreamReader _stderr;
         private StreamReader _stdout;
         private StreamWriter _stdin;
-        private StringBuilder _out;
         private IList<ConsoleString> _availableLines;
         private string _currentLine;
         private Thread _outReader;
@@ -40,7 +39,6 @@ namespace ConsoleWrapper
             // Initialise members
             _listeners = new List<IWrapperListener>();
             _availableLines = new List<ConsoleString>();
-            _out = new StringBuilder();
 
             // Set up the process for starting
             _process = new Process();
@@ -229,6 +227,26 @@ namespace ConsoleWrapper
             }
         }
 
+        private void StartAlertListenersFinished()
+        {
+            if (_alertListenersFinished != null)
+            {
+                if (_alertListenersFinished.IsAlive)
+                {
+                    // Give thread some time to exit
+                    if (!_alertListenersFinished.Join(100))
+                    {
+                        _alertListenersFinished.Abort();
+                        _alertListenersFinished.Join();
+                    }
+                }
+                _alertListenersFinished = null;
+            }
+            _alertListenersFinished = new Thread(new ThreadStart(AlertListenersFinished));
+            _alertListenersFinished.Start();
+            _alertListenersFinished.Join();
+        }
+
         private void AlertListenersFinished()
         {
             while (_alerting)
@@ -291,22 +309,7 @@ namespace ConsoleWrapper
                         //Thread.Sleep(50)
                     }
                     // Alert the listeners that we are finished
-                    if (_alertListenersFinished != null)
-                    {
-                        if (_alertListenersFinished.IsAlive)
-                        {
-                            // Give thread some time to exit
-                            if (!_alertListenersFinished.Join(100))
-                            {
-                                _alertListenersFinished.Abort();
-                                _alertListenersFinished.Join();
-                            }
-                        }
-                        _alertListenersFinished = null;
-                    }
-                    _alertListenersFinished = new Thread(new ThreadStart(AlertListenersFinished));
-                    _alertListenersFinished.Start();
-                    _alertListenersFinished.Join();
+                    StartAlertListenersFinished();
                 }
                 catch (ThreadAbortException)
                 {

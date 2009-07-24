@@ -15,14 +15,11 @@ namespace ConsoleWrapper
         // Member variables
         private IList<IWrapperListener> _listeners;
         private IList<IWrapper> _wrappers;
-        private StringBuilder _out;
         private IList<ConsoleString> _availableLines;
         private string _currentLine;
         private Thread _alertListeners;
-        private Thread _alertListenersFinished;
         private Boolean _alerting = false;
         private Boolean _newAlerts = false;
-        private bool _active = true;
         private ConsoleString.StringType _nextType = ConsoleString.StringType.Normal;
         private bool _hasNextType = false;
         private DirectoryInfo _currentDirectory;
@@ -42,7 +39,6 @@ namespace ConsoleWrapper
             // Initialise members
             _listeners = new List<IWrapperListener>();
             _availableLines = new List<ConsoleString>();
-            _out = new StringBuilder();
             _wrappers = new List<IWrapper>();
             _currentDirectory = directory;
 
@@ -77,8 +73,6 @@ namespace ConsoleWrapper
 
         protected virtual void Dispose(bool disposeManagedResources)
         {
-            _active = false;
-
             // Process only if mananged and unmanaged resources have
             // not been disposed of.
             if (!_disposed)
@@ -405,7 +399,7 @@ namespace ConsoleWrapper
                 }
             }
 
-            _currentLine = strings[strings.Length - 1].Text;
+            _currentLine = sender.GetCurrentLine();
 
             StartAlertListeners();
         }
