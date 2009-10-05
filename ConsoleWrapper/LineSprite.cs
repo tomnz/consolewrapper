@@ -31,6 +31,7 @@ namespace ConsoleWrapper
         private ConsoleString _line;
         private String _fontFace;
         private int _fontSize;
+        private FontTexture _fontTexture;
 
         private int _lineWidth;
         public override int Width
@@ -135,92 +136,13 @@ namespace ConsoleWrapper
                     try
                     {
                         int firstTick = Environment.TickCount;
-                        System.Drawing.Font font = new System.Drawing.Font(_fontFace, _fontSize);
-                        Bitmap b = new Bitmap(_lineWidth, _lineHeight, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
 
-                        Graphics g = Graphics.FromImage(b);
-                        g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
-
-                        g.FillRectangle(new SolidBrush(Color.Black), new Rectangle(0, 0, b.Width, b.Height));
-
-                        g.DrawString(_displayString, font, new SolidBrush(Color.White), new PointF(0, 0));
-                        //TextRenderer.DrawText(g, _displayString, font, new Point(0, 0), Color.White);
-
-                        _lineTexture = Texture.FromBitmap(device, b, Usage.None, Pool.Managed);
-
-                        //_lineTexture = new Texture(device, (int)_lineWidth * (int)Math.Pow(2.0, (double)mipLevels), (int)_lineHeight * (int)Math.Pow(2.0, (double)mipLevels), mipLevels + 1, Usage.RenderTarget, Format.Unknown, Pool.Default);
-
-                        //Surface s = _lineTexture.GetSurfaceLevel(mipLevels);
-                        //SurfaceLoader.FromSurface(s, Surface.FromBitmap(device, b, Pool.Default), Filter.Box, 0xFF0000);
-
-                        g.Dispose();
-
-                        //for (int i = 1; i <= mipLevels; i++)
-                        //{
-                        //    int width = _lineWidth * (int)Math.Pow(2.0, (double)i);
-                        //    int height = _lineHeight * (int)Math.Pow(2, (double)i);
-
-                        //    b = new Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-                        //    font = new System.Drawing.Font(_fontFace, _fontSize * (float)Math.Pow(2, (double)i));
-
-                        //    g = Graphics.FromImage(b);
-                        //    g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
-
-                        //    g.FillRectangle(new SolidBrush(Color.Black), new Rectangle(0, 0, b.Width, b.Height));
-                        //    g.DrawString(displayString, font, new SolidBrush(Color.White), new PointF(0, 0));
-
-                        //    s = _lineTexture.GetSurfaceLevel(mipLevels - i);
-                        //    SurfaceLoader.FromSurface(s, Surface.FromBitmap(device, b, Pool.Default), Filter.Box, 0xFF0000);
-
-                        //    g.Dispose();
-                        //}
+                        // Get the font
+                        _fontTexture = FontTextureFactory.GetFontTexture(_fontFace, _fontSize, device);
 
                         // Set up the material
                         _lineMaterial = new Material();
                         _lineMaterial.Diffuse = _line.Color;
-                        //_lineMaterial.Ambient = GetColor(_line.Type);
-
-                        // Set up the rectangular mesh
-                        CustomVertex.PositionNormalTextured[] verts = new CustomVertex.PositionNormalTextured[4];
-
-                        verts[0].Position = new Vector3(0, 0, -_lineHeight);
-                        verts[0].Normal = new Vector3(0, 1, 0);
-                        verts[0].Tu = 0; verts[0].Tv = 1;
-
-                        verts[1].Position = new Vector3(_lineWidth, 0, -_lineHeight);
-                        verts[1].Normal = new Vector3(0, 1, 0);
-                        verts[1].Tu = 1; verts[1].Tv = 1;
-
-                        verts[2].Position = new Vector3(_lineWidth, 0, 0);
-                        verts[2].Normal = new Vector3(0, 1, 0);
-                        verts[2].Tu = 1; verts[2].Tv = 0;
-
-                        verts[3].Position = new Vector3(0, 0, 0);
-                        verts[3].Normal = new Vector3(0, 1, 0);
-                        verts[3].Tu = 0; verts[3].Tv = 0;
-
-                        AttributeRange[] attributes = new AttributeRange[1];
-                        attributes[0].AttributeId = 0;
-                        attributes[0].FaceCount = 2;
-                        attributes[0].FaceStart = 0;
-                        attributes[0].VertexCount = 4;
-                        attributes[0].VertexStart = 0;
-
-                        short[] indices = new short[]
-                        {
-                            0, 1, 2,
-                            0, 2, 3
-                        };
-
-                        _lineSprite = new Mesh(2, 4, 0, CustomVertex.PositionNormalTextured.Format, device);
-
-                        _lineSprite.SetVertexBufferData(verts, LockFlags.Discard);
-                        _lineSprite.SetIndexBufferData(indices, LockFlags.Discard);
-                        _lineSprite.SetAttributeTable(attributes);
-
-                        //int[] adjacency = new int[_lineSprite.NumberFaces * 3];
-                        //_lineSprite.GenerateAdjacency(0.01F, adjacency);
-                        //_lineSprite.OptimizeInPlace(MeshFlags.OptimizeVertexCache, adjacency);
 
                         _valid = true;
                     }
@@ -276,7 +198,7 @@ namespace ConsoleWrapper
             if (!_valid || _building)
                 return;
 
-            if (_lineSprite != null)
+            if (_fontTexture.Valid)
             {
                 // Set up the expansion
                 Matrix worldBackup = device.Transform.World;
@@ -285,27 +207,69 @@ namespace ConsoleWrapper
                     device.Transform.World *= Matrix.Scaling(new Vector3((float)_widthFactor, 1, 1));
                 }
 
+                Mesh letterSprite = new Mesh(2, 4, 0, CustomVertex.PositionNormalTextured.Format, device);
+
+                AttributeRange[] attributes = new AttributeRange[1];
+                attributes[0].AttributeId = 0;
+                attributes[0].FaceCount = 2;
+                attributes[0].FaceStart = 0;
+                attributes[0].VertexCount = 4;
+                attributes[0].VertexStart = 0;
+
+                short[] indices = new short[]
+                        {
+                            0, 1, 2,
+                            0, 2, 3
+                        };
+
+                char[] letters = _displayString.ToCharArray();
+
                 // Set the material and texture
                 device.Material = _lineMaterial;
-                device.SetTexture(0, _lineTexture);
+                device.SetTexture(0, _fontTexture.Texture);
 
-                int numSubSets = _lineSprite.GetAttributeTable().Length;
-
-
-                // Mip maps
-                //device.SamplerState[0].MipFilter = TextureFilter.Anisotropic;
-
-                // Draw the primitive
-                for (int i = 0; i < numSubSets; i++)
+                foreach (char c in letters)
                 {
-                    try
+                    FontTexture.LetterInfo letter = _fontTexture.Letter(c);
+
+                    CustomVertex.PositionNormalTextured[] verts = new CustomVertex.PositionNormalTextured[4];
+
+                    verts[0].Position = new Vector3(0, 0, -letter.h);
+                    verts[0].Normal = new Vector3(0, 1, 0);
+                    verts[0].Tu = (float)letter.ul; verts[0].Tv = (float)letter.vb;
+
+                    verts[1].Position = new Vector3(letter.w, 0, -letter.h);
+                    verts[1].Normal = new Vector3(0, 1, 0);
+                    verts[1].Tu = (float)letter.ur; verts[1].Tv = (float)letter.vb;
+
+                    verts[2].Position = new Vector3(_lineWidth, 0, 0);
+                    verts[2].Normal = new Vector3(0, 1, 0);
+                    verts[2].Tu = (float)letter.ur; verts[2].Tv = (float)letter.vt;
+
+                    verts[3].Position = new Vector3(0, 0, 0);
+                    verts[3].Normal = new Vector3(0, 1, 0);
+                    verts[3].Tu = (float)letter.ul; verts[3].Tv = (float)letter.vt;
+
+                    letterSprite.SetVertexBufferData(verts, LockFlags.Discard);
+                    letterSprite.SetIndexBufferData(indices, LockFlags.Discard);
+                    letterSprite.SetAttributeTable(attributes);
+
+                    int numSubSets = _lineSprite.GetAttributeTable().Length;
+                    // Draw the primitive
+                    for (int i = 0; i < numSubSets; i++)
                     {
-                        _lineSprite.DrawSubset(i);
+                        try
+                        {
+                            letterSprite.DrawSubset(i);
+                        }
+                        catch (Exception)
+                        {
+                            _valid = false;
+                        }
                     }
-                    catch (Exception)
-                    {
-                        _valid = false;
-                    }
+
+                    // Translate world for the next letter
+                    device.Transform.World *= Matrix.Translation((float)letter.w, 0F, 0F);
                 }
 
                 // Restore the world matrix
