@@ -228,6 +228,9 @@ namespace ConsoleWrapper
                 device.Material = _lineMaterial;
                 device.SetTexture(0, _fontTexture.Texture);
 
+                letterSprite.SetIndexBufferData(indices, LockFlags.Discard);
+                letterSprite.SetAttributeTable(attributes);
+
                 foreach (char c in letters)
                 {
                     FontTexture.LetterInfo letter = _fontTexture.Letter(c);
@@ -242,7 +245,7 @@ namespace ConsoleWrapper
                     verts[1].Normal = new Vector3(0, 1, 0);
                     verts[1].Tu = (float)letter.ur; verts[1].Tv = (float)letter.vb;
 
-                    verts[2].Position = new Vector3(_lineWidth, 0, 0);
+                    verts[2].Position = new Vector3(letter.w, 0, 0);
                     verts[2].Normal = new Vector3(0, 1, 0);
                     verts[2].Tu = (float)letter.ur; verts[2].Tv = (float)letter.vt;
 
@@ -251,21 +254,14 @@ namespace ConsoleWrapper
                     verts[3].Tu = (float)letter.ul; verts[3].Tv = (float)letter.vt;
 
                     letterSprite.SetVertexBufferData(verts, LockFlags.Discard);
-                    letterSprite.SetIndexBufferData(indices, LockFlags.Discard);
-                    letterSprite.SetAttributeTable(attributes);
 
-                    int numSubSets = _lineSprite.GetAttributeTable().Length;
-                    // Draw the primitive
-                    for (int i = 0; i < numSubSets; i++)
+                    try
                     {
-                        try
-                        {
-                            letterSprite.DrawSubset(i);
-                        }
-                        catch (Exception)
-                        {
-                            _valid = false;
-                        }
+                        letterSprite.DrawSubset(0);
+                    }
+                    catch (Exception)
+                    {
+                        _valid = false;
                     }
 
                     // Translate world for the next letter

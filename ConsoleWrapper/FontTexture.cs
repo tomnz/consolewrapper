@@ -19,7 +19,7 @@ namespace ConsoleWrapper
                 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
                 '1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
                 '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '-', '_', '=', '+', '|', '\\', '[', ']', '{', '}',
-                ';', ':', '\'', '"', ',', '<', '.', '>', '/', '\\', '?', '`', '~', ' ', _unknownChar
+                ';', ':', '\'', '"', ',', '<', '.', '>', '/', '?', '`', '~', ' ', _unknownChar
             };
 
         public struct LetterInfo
@@ -155,8 +155,8 @@ namespace ConsoleWrapper
                 {
                     double ul = (double)i % (double)textureSideDimension / (double)textureSideDimension;
                     double ur = ((double)i % (double)textureSideDimension * (double)_letterWidth + ((double)_letterWidth - 1)) / ((double)textureSideDimension * (double)_letterWidth);
-                    double vt = (double)i / ((double)textureSideDimension * (double)textureSideDimension);
-                    double vb = (((double)i / (double)textureSideDimension) * (double)_letterHeight + ((double)_letterHeight - 1)) / ((double)textureSideDimension * (double)_letterHeight);
+                    double vt = (double)(i / textureSideDimension) / (double)textureSideDimension;
+                    double vb = ((double)(i / textureSideDimension) * (double)_letterHeight + ((double)_letterHeight - 1)) / ((double)textureSideDimension * (double)_letterHeight);
                     int x = i % textureSideDimension * _letterWidth;
                     int y = i / textureSideDimension * _letterHeight;
 
@@ -170,13 +170,19 @@ namespace ConsoleWrapper
                     letterInfo.vt = vt;
                     letterInfo.vb = vb;
 
+                    _letters.Add(letter, letterInfo);
+
                     i++;
                 }
 
                 _texture = Texture.FromBitmap(device, b, Usage.None, Pool.Managed);
+                b.Save("temp.jpg", System.Drawing.Imaging.ImageFormat.Jpeg);
+                
                 g.Dispose();
+
+                _valid = true;
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 _valid = false;
                 _texture = null;
