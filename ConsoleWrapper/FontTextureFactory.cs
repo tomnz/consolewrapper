@@ -34,5 +34,17 @@ namespace ConsoleWrapper
                 font.Rebuild(device);
             }
         }
+
+        public static void DisposeTextures()
+        {
+            string[] keys = new string[_fontTextures.Keys.Count];
+            _fontTextures.Keys.CopyTo(keys, 0);
+
+            foreach (string key in keys)
+            {
+                _fontTextures[key].Dispose();
+                _fontTextures[key] = null;
+            }
+        }
     }
 }

@@ -176,7 +176,6 @@ namespace ConsoleWrapper
                 }
 
                 _texture = Texture.FromBitmap(device, b, Usage.None, Pool.Managed);
-                b.Save("temp.jpg", System.Drawing.Imaging.ImageFormat.Jpeg);
                 
                 g.Dispose();
 
