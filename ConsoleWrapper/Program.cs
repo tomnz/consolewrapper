@@ -23,6 +23,8 @@ namespace ConsoleWrapper
                 frm.Render();
                 Application.DoEvents();
             }
+
+            FontTextureFactory.DisposeTextures();
         }
     }
 }
