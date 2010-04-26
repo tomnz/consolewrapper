@@ -259,24 +259,26 @@ namespace ConsoleWrapper
 						{
 							if (splitLine.Length != 2)
 							{
-								OutputAppend("VIEW takes one argument - the location of an image file" + Environment.NewLine, ConsoleString.StringType.Err);
+                                OutputAppend(line + Environment.NewLine);
+                                OutputAppend("VIEW takes one argument - the location of an image file" + Environment.NewLine, ConsoleString.StringType.Err);
 							}
 							else
 							{
 								// Check file exists
 								if (File.Exists(splitLine[1]))
 								{
-									OutputAppend(Environment.NewLine);
-									OutputAppend(splitLine[1], ConsoleString.StringType.Image);
+                                    OutputAppend(line + Environment.NewLine);
+                                    OutputAppend(splitLine[1], ConsoleString.StringType.Image);
 								}
 								else if (File.Exists(Path.Combine(_currentDirectory.FullName, splitLine[1])))
 								{
-									OutputAppend(Environment.NewLine);
-									OutputAppend(Path.Combine(_currentDirectory.FullName, splitLine[1]), ConsoleString.StringType.Image);
+                                    OutputAppend(line + Environment.NewLine);
+                                    OutputAppend(Path.Combine(_currentDirectory.FullName, splitLine[1]), ConsoleString.StringType.Image);
 								}
 								else
 								{
-									OutputAppend("Cannot find image: " + splitLine[1] + Environment.NewLine, ConsoleString.StringType.Err);
+                                    OutputAppend(line + Environment.NewLine);
+                                    OutputAppend("Cannot find image: " + splitLine[1] + Environment.NewLine, ConsoleString.StringType.Err);
 								}
 							}
 						} break;
