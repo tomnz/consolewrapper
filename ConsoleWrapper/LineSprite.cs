@@ -108,7 +108,7 @@ namespace ConsoleWrapper
 			}
 			_displayString += tempString;
 
-			SizeF stringSize = g.MeasureString(_displayString, font);
+			SizeF stringSize = g.MeasureString(_displayString, font, new PointF(0, 0), StringFormat.GenericTypographic);
 			//Size stringSize = TextRenderer.MeasureText(_line.Text, font);
 
 			_lineWidth = Size.Truncate(stringSize).Width;
@@ -237,51 +237,65 @@ namespace ConsoleWrapper
                 letterSprite.SetIndexBufferData(indices, LockFlags.Discard);
                 letterSprite.SetAttributeTable(attributes);
 
+                int numLines = 0;
+
                 foreach (char c in letters)
                 {
-                    FontTexture.LetterInfo letter = _fontTexture.Letter(c);
-
-                    CustomVertex.PositionNormalTextured[] verts = new CustomVertex.PositionNormalTextured[4];
-
-                    verts[0].Position = new Vector3(0, 0, -letter.h);
-                    verts[0].Normal = new Vector3(0, 1, 0);
-                    verts[0].Tu = (float)letter.ul; verts[0].Tv = (float)letter.vb;
-
-                    verts[1].Position = new Vector3(letter.w, 0, -letter.h);
-                    verts[1].Normal = new Vector3(0, 1, 0);
-                    verts[1].Tu = (float)letter.ur; verts[1].Tv = (float)letter.vb;
-
-                    verts[2].Position = new Vector3(letter.w, 0, 0);
-                    verts[2].Normal = new Vector3(0, 1, 0);
-                    verts[2].Tu = (float)letter.ur; verts[2].Tv = (float)letter.vt;
-
-                    verts[3].Position = new Vector3(0, 0, 0);
-                    verts[3].Normal = new Vector3(0, 1, 0);
-                    verts[3].Tu = (float)letter.ul; verts[3].Tv = (float)letter.vt;
-
-                    letterSprite.SetVertexBufferData(verts, LockFlags.Discard);
-
-                    try
+                    if (c == '\n')
                     {
-                        letterSprite.DrawSubset(0);
+                        numLines++;
+                        device.Transform.World = worldBackup;
+                        device.Transform.World *= Matrix.Translation(0, 0, -(float)(_fontTexture.LetterHeight * 1) * numLines);
                     }
-                    catch (Exception)
+                    else if (c == '\r')
                     {
-                        _valid = false;
                     }
+                    else
+                    {
+                        FontTexture.LetterInfo letter = _fontTexture.Letter(c);
 
-                    // Translate world for the next letter
-					if (_widthFactor != 1)
-					{
-						device.Transform.World *= Matrix.Scaling(new Vector3(1/(float)_widthFactor, 1, 1));
-					}
+                        CustomVertex.PositionNormalTextured[] verts = new CustomVertex.PositionNormalTextured[4];
 
-                    device.Transform.World *= Matrix.Translation((float)letter.w, 0F, 0F);
-				
-					if (_widthFactor != 1)
-					{
-						device.Transform.World *= Matrix.Scaling(new Vector3((float)_widthFactor, 1, 1));
-					}
+                        verts[0].Position = new Vector3(0, 0, -letter.h);
+                        verts[0].Normal = new Vector3(0, 1, 0);
+                        verts[0].Tu = (float)letter.ul; verts[0].Tv = (float)letter.vb;
+
+                        verts[1].Position = new Vector3(letter.w, 0, -letter.h);
+                        verts[1].Normal = new Vector3(0, 1, 0);
+                        verts[1].Tu = (float)letter.ur; verts[1].Tv = (float)letter.vb;
+
+                        verts[2].Position = new Vector3(letter.w, 0, 0);
+                        verts[2].Normal = new Vector3(0, 1, 0);
+                        verts[2].Tu = (float)letter.ur; verts[2].Tv = (float)letter.vt;
+
+                        verts[3].Position = new Vector3(0, 0, 0);
+                        verts[3].Normal = new Vector3(0, 1, 0);
+                        verts[3].Tu = (float)letter.ul; verts[3].Tv = (float)letter.vt;
+
+                        letterSprite.SetVertexBufferData(verts, LockFlags.Discard);
+
+                        try
+                        {
+                            letterSprite.DrawSubset(0);
+                        }
+                        catch (Exception)
+                        {
+                            _valid = false;
+                        }
+
+                        // Translate world for the next letter
+                        if (_widthFactor != 1)
+                        {
+                            device.Transform.World *= Matrix.Scaling(new Vector3(1 / (float)_widthFactor, 1, 1));
+                        }
+
+                        device.Transform.World *= Matrix.Translation((float)letter.w, 0F, 0F);
+
+                        if (_widthFactor != 1)
+                        {
+                            device.Transform.World *= Matrix.Scaling(new Vector3((float)_widthFactor, 1, 1));
+                        }
+                    }
 				}
 
                 // Restore the world matrix

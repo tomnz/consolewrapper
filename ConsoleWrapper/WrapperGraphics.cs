@@ -188,6 +188,8 @@ namespace ConsoleWrapper
                 }
             }
 
+            FontTextureFactory.Rebuild(dev);
+
             ResetTimer();
         }
 
@@ -321,8 +323,8 @@ namespace ConsoleWrapper
                     _device.PresentationParameters.BackBufferWidth - 20, 30),
                 DrawTextFormat.Left | DrawTextFormat.WordBreak | DrawTextFormat.ExpandTabs,
                 _currentLine.Color);
-            //_uiFont.DrawText(null, "FPS: " + _timer.FPS.ToString("0.00"), _device.PresentationParameters.BackBufferWidth - 85, 10, System.Drawing.Color.LightSeaGreen);
-            //_uiFont.DrawText(null, numLinesRendered.ToString(), 10, 10, System.Drawing.Color.Red);
+            _uiFont.DrawText(null, "FPS: " + _timer.FPS.ToString("0.00"), _device.PresentationParameters.BackBufferWidth - 85, 10, System.Drawing.Color.LightSeaGreen);
+            _uiFont.DrawText(null, numLinesRendered.ToString(), 10, 10, System.Drawing.Color.Red);
 
             // End the scene
             _device.EndScene();

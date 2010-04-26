@@ -61,7 +61,15 @@ namespace ConsoleWrapper
 
         private System.Drawing.Font _font;
         private int _letterHeight;
+        public int LetterHeight
+        {
+            get { return _letterHeight; }
+        }
         private int _letterWidth;
+        public int LetterWidth
+        {
+            get { return _letterWidth; }
+        }
 
         // Constructors
         public FontTexture(string fontFace, int fontSize, Device device):
@@ -116,6 +124,8 @@ namespace ConsoleWrapper
             // Teardown
             this.Dispose();
 
+            _letters.Clear();
+
             // Build the texture asynchronously so as to 
             // not delay the render
 			ThreadPool.QueueUserWorkItem(new WaitCallback(RebuildAsync), device);
@@ -135,13 +145,15 @@ namespace ConsoleWrapper
                 Bitmap b = new Bitmap(1, 1);
                 Graphics g = Graphics.FromImage(b);
 
+                StringFormat sf = new StringFormat(StringFormat.GenericTypographic);
+
                 g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
 
                 //SizeF charSize = g.MeasureString("█", _font);
-				SizeF charSize = g.MeasureString("█", _font);
+                SizeF charSize = g.MeasureString("█", _font, new PointF(0, 0), sf);
 
-                _letterHeight = (int)charSize.Height;
-                _letterWidth = (int)charSize.Width;
+                _letterHeight = (int)charSize.Height+4;
+                _letterWidth = (int)charSize.Width+2;
 
                 // Work out the best size for the texture
                 int textureSideDimension = (int)Math.Ceiling(Math.Sqrt(_renderableLetters.Length));
@@ -163,11 +175,11 @@ namespace ConsoleWrapper
                     int x = i % textureSideDimension * _letterWidth;
                     int y = i / textureSideDimension * _letterHeight;
 
-                    g.DrawString(letter.ToString(), _font, new SolidBrush(Color.White), new PointF(x, y));
+                    g.DrawString(letter.ToString(), _font, new SolidBrush(Color.White), new PointF(x+1, y+1), sf);
 
                     LetterInfo letterInfo;
-                    letterInfo.h = _letterHeight;
-                    letterInfo.w = _letterWidth;
+                    letterInfo.h = _letterHeight-2;
+                    letterInfo.w = _letterWidth-2;
                     letterInfo.ul = ul;
                     letterInfo.ur = ur;
                     letterInfo.vt = vt;
@@ -205,6 +217,11 @@ namespace ConsoleWrapper
             }
 
             return str.ToString();
+        }
+
+        public void Invalidate()
+        {
+            _valid = false;
         }
 
         #region IDisposable Members

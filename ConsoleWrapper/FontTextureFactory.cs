@@ -17,8 +17,7 @@ namespace ConsoleWrapper
                 _fontTextures = new Dictionary<string, FontTexture>();
             }
 
-            string fontKey = fontFace + "_" + fontSize;
-
+            string fontKey = fontFace + "_" + fontSize + "_" + device.GetHashCode();
             if (!_fontTextures.ContainsKey(fontKey))
             {
                 _fontTextures.Add(fontKey, new FontTexture(fontFace, fontSize, device));
@@ -29,14 +28,21 @@ namespace ConsoleWrapper
 
         public static void Rebuild(Device device)
         {
+            if (_fontTextures == null)
+                return;
+
             foreach (FontTexture font in _fontTextures.Values)
             {
+                font.Invalidate();
                 font.Rebuild(device);
             }
         }
 
         public static void DisposeTextures()
         {
+            if (_fontTextures == null)
+                return;
+
             string[] keys = new string[_fontTextures.Keys.Count];
             _fontTextures.Keys.CopyTo(keys, 0);
 
