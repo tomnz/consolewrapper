@@ -116,22 +116,29 @@ namespace ConsoleWrapper
         {
             lock (_availableLines)
             {
-                str = _currentLine + str;
+				if (type == ConsoleString.StringType.Image)
+				{
+					_availableLines.Add(new ConsoleString(str, ConsoleString.StringType.Image));
+				}
+				else
+				{
+					str = _currentLine + str;
 
-                string[] lines = str.Split(new string[] { Environment.NewLine, "\n", "\n\r" }, StringSplitOptions.None);
+					string[] lines = str.Split(new string[] { Environment.NewLine, "\n", "\n\r" }, StringSplitOptions.None);
 
-                for (int i = 0; i < lines.Length - 1; i++)
-                {
-                    if (_hasNextType && type == ConsoleString.StringType.Normal)
-                        _availableLines.Add(new ConsoleString(lines[i], _nextType));
-                    else
-                        _availableLines.Add(new ConsoleString(lines[i], type));
+					for (int i = 0; i < lines.Length - 1; i++)
+					{
+						if (_hasNextType && type == ConsoleString.StringType.Normal)
+							_availableLines.Add(new ConsoleString(lines[i], _nextType));
+						else
+							_availableLines.Add(new ConsoleString(lines[i], type));
 
-                    _hasNextType = false;
+						_hasNextType = false;
 
-                }
+					}
 
-                _currentLine = lines[lines.Length - 1];
+					_currentLine = lines[lines.Length - 1];
+				}
             }
 
             StartAlertListeners();
@@ -248,6 +255,31 @@ namespace ConsoleWrapper
                             OutputAppend(line + Environment.NewLine);
                             ChangeDirectory(args);
                         } break;
+					case "view":
+						{
+							if (splitLine.Length != 2)
+							{
+								OutputAppend("VIEW takes one argument - the location of an image file" + Environment.NewLine, ConsoleString.StringType.Err);
+							}
+							else
+							{
+								// Check file exists
+								if (File.Exists(splitLine[1]))
+								{
+									OutputAppend(Environment.NewLine);
+									OutputAppend(splitLine[1], ConsoleString.StringType.Image);
+								}
+								else if (File.Exists(Path.Combine(_currentDirectory.FullName, splitLine[1])))
+								{
+									OutputAppend(Environment.NewLine);
+									OutputAppend(Path.Combine(_currentDirectory.FullName, splitLine[1]), ConsoleString.StringType.Image);
+								}
+								else
+								{
+									OutputAppend("Cannot find image: " + splitLine[1] + Environment.NewLine, ConsoleString.StringType.Err);
+								}
+							}
+						} break;
                     default:
                         {
                             OutputAppend(line + Environment.NewLine);

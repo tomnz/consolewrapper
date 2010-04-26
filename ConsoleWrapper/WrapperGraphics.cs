@@ -21,6 +21,8 @@ namespace ConsoleWrapper
         private String _fontFace = "Lucida Console";
         private int _fontSize = 12;
         private int _lineGap = 5;
+		private int _maxImageWidth = 800;
+		private int _maxImageHeight = 800;
         private bool _paused = false;
         private bool _deviceLost = false;
 
@@ -100,7 +102,7 @@ namespace ConsoleWrapper
                 if (logoStream != null)
                 {
                     // Display logo
-                    System.Drawing.Bitmap b = (Bitmap)System.Drawing.Bitmap.FromStream(logoStream);
+                    Bitmap b = (Bitmap)Bitmap.FromStream(logoStream);
                     _lines.Add(new ImageSprite(b, _device));
                     _numLines++;
                 }
@@ -354,16 +356,26 @@ namespace ConsoleWrapper
             if (line.Text == "")
                 line.Text = " ";
 
-            LineSprite lineSprite = new LineSprite(line, _fontFace, _fontSize, _device, !_deviceLost);
+			Renderable lineSprite = null;
 
-            lock (_lines)
-            {
-                _lines.Add(lineSprite);
-                _numLines++;
-                _viewLine = _numLines;
-            }
+			if (line.Type == ConsoleString.StringType.Image)
+			{
+				Bitmap b = (Bitmap)Bitmap.FromFile(line.Text);
+				lineSprite = new ImageSprite(b, _device, _maxImageWidth, _maxImageHeight);
+			}
+			else
+			{
+				lineSprite = new LineSprite(line, _fontFace, _fontSize, _device, !_deviceLost);
+			}
 
-            SetCameraLocation();
+			lock (_lines)
+			{
+				_lines.Add(lineSprite);
+				_numLines++;
+				_viewLine = _numLines;
+			}
+			
+			SetCameraLocation();
         }
 
         // Returns true if the line is outside the frustum

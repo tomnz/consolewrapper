@@ -16,7 +16,8 @@ namespace ConsoleWrapper
             Out,
             Err,
             Input,
-            Special
+            Special,
+			Image
         }
 
         private string _text;
