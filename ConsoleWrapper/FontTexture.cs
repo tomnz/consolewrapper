@@ -118,9 +118,11 @@ namespace ConsoleWrapper
 
             // Build the texture asynchronously so as to 
             // not delay the render
-            Thread rebuildThread = new Thread(new ParameterizedThreadStart(RebuildAsync));
-            rebuildThread.Priority = ThreadPriority.Lowest;
-            rebuildThread.Start(device);
+			ThreadPool.QueueUserWorkItem(new WaitCallback(RebuildAsync), device);
+
+			//Thread rebuildThread = new Thread(new ParameterizedThreadStart(RebuildAsync));
+			//rebuildThread.Priority = ThreadPriority.Lowest;
+			//rebuildThread.Start(device);
         }
 
         private void RebuildAsync(Object deviceObj)
@@ -135,7 +137,8 @@ namespace ConsoleWrapper
 
                 g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
 
-                SizeF charSize = g.MeasureString("█", _font);
+                //SizeF charSize = g.MeasureString("█", _font);
+				SizeF charSize = g.MeasureString("█", _font);
 
                 _letterHeight = (int)charSize.Height;
                 _letterWidth = (int)charSize.Width;
@@ -144,7 +147,7 @@ namespace ConsoleWrapper
                 int textureSideDimension = (int)Math.Ceiling(Math.Sqrt(_renderableLetters.Length));
 
                 // Draw the texture
-                b = new Bitmap(textureSideDimension * _letterWidth, textureSideDimension * _letterHeight, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+                b = new Bitmap(textureSideDimension * _letterWidth, textureSideDimension * _letterHeight, System.Drawing.Imaging.PixelFormat.Format16bppRgb555);
                 g = Graphics.FromImage(b);
 
                 g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
@@ -181,7 +184,7 @@ namespace ConsoleWrapper
 
                 _valid = true;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 _valid = false;
                 _texture = null;

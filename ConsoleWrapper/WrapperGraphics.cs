@@ -85,6 +85,13 @@ namespace ConsoleWrapper
         // The number of lines to keep in the buffer
         private int _bufferSize = 500;
 
+		// Helper mesh for rendering letters
+		private static Mesh _letterSprite = null;
+		public static Mesh LetterSprite
+		{
+			get { return _letterSprite; }
+		}
+		
         public WrapperGraphics(Control parent)
         {
             _lines = new List<Renderable>();
@@ -165,6 +172,7 @@ namespace ConsoleWrapper
             dev.RenderState.DitherEnable = true;
 
             _uiFont = new Microsoft.DirectX.Direct3D.Font(_device, 11, 0, FontWeight.Normal, 0, false, CharacterSet.Default, Precision.Default, FontQuality.ClearType, PitchAndFamily.DefaultPitch, _fontFace);
+			_letterSprite = new Mesh(2, 4, 0, CustomVertex.PositionNormalTextured.Format, dev);
 
             lock (_lines)
             {
@@ -215,6 +223,11 @@ namespace ConsoleWrapper
                 _uiFont.Dispose();
                 //_uiFont = null;
             }
+			if (_letterSprite != null)
+			{
+				_letterSprite.Dispose();
+				_letterSprite = null;
+			}
         }
 
         public void Render()
@@ -318,7 +331,7 @@ namespace ConsoleWrapper
             {
                 _device.Present();
             }
-            catch (DeviceLostException)
+            catch (Exception)
             {
                 _deviceLost = true;
                 _paused = true;
