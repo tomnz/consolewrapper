@@ -22,7 +22,7 @@ namespace ConsoleWrapper
         private int _fontSize = 12;
         private int _lineGap = 5;
 		private int _maxImageWidth = 800;
-		private int _maxImageHeight = 800;
+		private int _maxImageHeight = 500;
         private bool _paused = false;
         private bool _deviceLost = false;
 
@@ -323,8 +323,8 @@ namespace ConsoleWrapper
                     _device.PresentationParameters.BackBufferWidth - 20, 30),
                 DrawTextFormat.Left | DrawTextFormat.WordBreak | DrawTextFormat.ExpandTabs,
                 _currentLine.Color);
-            _uiFont.DrawText(null, "FPS: " + _timer.FPS.ToString("0.00"), _device.PresentationParameters.BackBufferWidth - 85, 10, System.Drawing.Color.LightSeaGreen);
-            _uiFont.DrawText(null, numLinesRendered.ToString(), 10, 10, System.Drawing.Color.Red);
+            //_uiFont.DrawText(null, "FPS: " + _timer.FPS.ToString("0.00"), _device.PresentationParameters.BackBufferWidth - 85, 10, System.Drawing.Color.LightSeaGreen);
+            //_uiFont.DrawText(null, numLinesRendered.ToString(), 10, 10, System.Drawing.Color.Red);
 
             // End the scene
             _device.EndScene();
