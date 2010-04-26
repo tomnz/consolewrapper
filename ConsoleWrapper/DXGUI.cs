@@ -83,14 +83,14 @@ namespace ConsoleWrapper
         {
             lock (_currentLines)
             {
-                _currentLine = new StringBuilder(_wrapper.GetCurrentLine());
-
                 ConsoleString[] strings = sender.GetText();
                 foreach (ConsoleString str in strings)
                 {
                     _currentLines.Add(str);
                 }
-            }
+			
+				_currentLine = new StringBuilder(_wrapper.GetCurrentLine());
+			}
             ProcessText();
         }
 

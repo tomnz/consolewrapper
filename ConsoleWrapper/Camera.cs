@@ -51,7 +51,7 @@ namespace ConsoleWrapper
         private float _accelFactorLightLocation = 2.0f;
         private float _velFactorLightLocation = 0.4f;
 
-        private float _accelFactorLightLook = 3.5f;
+        private float _accelFactorLightLook = 4.0f;
         private float _velFactorLightLook = 0.4f;
 
         private Matrix _viewMatrix;

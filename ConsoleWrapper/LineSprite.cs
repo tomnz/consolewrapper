@@ -90,33 +90,36 @@ namespace ConsoleWrapper
             // Teardown
             this.Dispose();
 
-            // Set up the line texture
-            Bitmap b = new Bitmap(1, 1);
-            System.Drawing.Font font = new System.Drawing.Font(_fontFace, _fontSize);
+			// Set up the line texture
+			Bitmap b = new Bitmap(1, 1);
+			System.Drawing.Font font = new System.Drawing.Font(_fontFace, _fontSize);
 
-            Graphics g = Graphics.FromImage(b);
+			Graphics g = Graphics.FromImage(b);
 
-            g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
+			g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
 
-            _displayString = "";
-            string tempString = _line.Text;
+			_displayString = "";
+			string tempString = _line.Text;
 
-            while (tempString.Length > MaxLineWidth)
-            {
-                _displayString += tempString.Substring(0, MaxLineWidth) + Environment.NewLine;
-                tempString = tempString.Substring(MaxLineWidth);
-            }
-            _displayString += tempString;
+			while (tempString.Length > MaxLineWidth)
+			{
+				_displayString += tempString.Substring(0, MaxLineWidth) + Environment.NewLine;
+				tempString = tempString.Substring(MaxLineWidth);
+			}
+			_displayString += tempString;
 
-            SizeF stringSize = g.MeasureString(_displayString, font);
-            //Size stringSize = TextRenderer.MeasureText(_line.Text, font);
+			SizeF stringSize = g.MeasureString(_displayString, font);
+			//Size stringSize = TextRenderer.MeasureText(_line.Text, font);
 
-            _lineWidth = Size.Truncate(stringSize).Width;
-            _lineHeight = Size.Truncate(stringSize).Height;
+			_lineWidth = Size.Truncate(stringSize).Width;
+			_lineHeight = Size.Truncate(stringSize).Height;
 
-            Thread rebuildThread = new Thread(new ParameterizedThreadStart(RebuildAsync));
-            rebuildThread.Priority = ThreadPriority.Lowest;
-            rebuildThread.Start(device);
+			ThreadPool.QueueUserWorkItem(new WaitCallback(RebuildAsync), device);
+
+			//Thread rebuildThread = new Thread(new ParameterizedThreadStart(RebuildAsync));
+			//rebuildThread.Priority = ThreadPriority.Lowest;
+			//rebuildThread.SetApartmentState(ApartmentState.MTA);
+			//rebuildThread.Start(device);
         }
 
         private void RebuildAsync(Object deviceObj)
@@ -202,12 +205,15 @@ namespace ConsoleWrapper
             {
                 // Set up the expansion
                 Matrix worldBackup = device.Transform.World;
-                if (_widthFactor != 1)
-                {
-                    device.Transform.World *= Matrix.Scaling(new Vector3((float)_widthFactor, 1, 1));
-                }
+				if (_widthFactor != 1)
+				{
+					device.Transform.World *= Matrix.Scaling(new Vector3((float)_widthFactor, 1, 1));
+				}
 
-                Mesh letterSprite = new Mesh(2, 4, 0, CustomVertex.PositionNormalTextured.Format, device);
+				Mesh letterSprite = WrapperGraphics.LetterSprite;
+
+				if (letterSprite == null)
+					return;
 
                 AttributeRange[] attributes = new AttributeRange[1];
                 attributes[0].AttributeId = 0;
@@ -265,11 +271,18 @@ namespace ConsoleWrapper
                     }
 
                     // Translate world for the next letter
-                    device.Transform.World *= Matrix.Translation((float)letter.w, 0F, 0F);
-                }
+					if (_widthFactor != 1)
+					{
+						device.Transform.World *= Matrix.Scaling(new Vector3(1/(float)_widthFactor, 1, 1));
+					}
 
-				letterSprite.Dispose();
-				letterSprite = null;
+                    device.Transform.World *= Matrix.Translation((float)letter.w, 0F, 0F);
+				
+					if (_widthFactor != 1)
+					{
+						device.Transform.World *= Matrix.Scaling(new Vector3((float)_widthFactor, 1, 1));
+					}
+				}
 
                 // Restore the world matrix
                 device.Transform.World = worldBackup;
