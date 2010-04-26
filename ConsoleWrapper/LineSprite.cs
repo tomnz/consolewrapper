@@ -268,6 +268,9 @@ namespace ConsoleWrapper
                     device.Transform.World *= Matrix.Translation((float)letter.w, 0F, 0F);
                 }
 
+				letterSprite.Dispose();
+				letterSprite = null;
+
                 // Restore the world matrix
                 device.Transform.World = worldBackup;
             }

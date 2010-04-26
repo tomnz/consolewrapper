@@ -76,7 +76,7 @@ namespace ConsoleWrapper
 
         protected override void OnPaint(System.Windows.Forms.PaintEventArgs e)
         {
-            Render(); // Render on painting
+            //Render(); // Render on painting
         }
 
         public void TextReady(IWrapper sender)

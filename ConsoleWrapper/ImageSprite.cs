@@ -24,16 +24,32 @@ namespace ConsoleWrapper
             get { return _imageMaterial; }
         }
 
-        private int _width;
+        private int _imageWidth;
+		private int _width;
         public override int Width
         {
             get { return _width; }
         }
-        private int _height;
+        private int _imageHeight;
+		private int _height;
         public override int Height
         {
             get { return _height; }
         }
+
+		private int _maxWidth;
+		public int MaxWidth
+		{
+			get { return _maxWidth; }
+			set { _maxWidth = value; }
+		}
+
+		private int _maxHeight;
+		public int MaxHeight
+		{
+			get { return _maxHeight; }
+			set { _maxHeight = value; }
+		}
 
         private Color _color = Color.White;
 
@@ -49,6 +65,23 @@ namespace ConsoleWrapper
 
             Rebuild(device);
         }
+
+		public ImageSprite(Bitmap bitmap, Device device, int maxWidth)
+		{
+			_bitmap = bitmap;
+			_maxWidth = maxWidth;
+
+			Rebuild(device);
+		}
+
+		public ImageSprite(Bitmap bitmap, Device device, int maxWidth, int maxHeight)
+		{
+			_bitmap = bitmap;
+			_maxWidth = maxWidth;
+			_maxHeight = maxHeight;
+
+			Rebuild(device);
+		}
 
         public ImageSprite(Bitmap bitmap, Device device, Color color)
         {
@@ -81,16 +114,45 @@ namespace ConsoleWrapper
             _building = true;
 
             // Teardown
-            this.Dispose();
+            TearDown();
 
             if (_bitmap == null)
                 return;
 
             lock (_bitmap)
             {
-                _width = Size.Truncate(_bitmap.Size).Width;
-                _height = Size.Truncate(_bitmap.Size).Height;
-            }
+                _imageWidth = Size.Truncate(_bitmap.Size).Width;
+                _imageHeight = Size.Truncate(_bitmap.Size).Height;
+
+				// Set up the image size
+				if (_maxWidth == 0 && _maxHeight == 0)
+				{
+					_width = _imageWidth;
+					_height = _imageHeight;
+				}
+				else
+				{
+					double resizeFactorWidth, resizeFactorHeight;
+					resizeFactorWidth = Math.Min(((double)_maxWidth / (double)_imageWidth), 1.0);
+					resizeFactorHeight = Math.Min(((double)_maxHeight / (double)_imageHeight), 1.0);
+
+					if (_maxWidth == 0)
+					{
+						_width = (int)(_imageWidth * resizeFactorHeight);
+						_height = (int)(_imageHeight * resizeFactorHeight);
+					}
+					else if (_maxHeight == 0)
+					{
+						_width = (int)(_imageWidth * resizeFactorWidth);
+						_height = (int)(_imageHeight * resizeFactorWidth);
+					}
+					else
+					{
+						_width = (int)(_imageWidth * Math.Min(resizeFactorWidth, resizeFactorHeight));
+						_height = (int)(_imageHeight * Math.Min(resizeFactorWidth, resizeFactorHeight));
+					}
+				}
+			}
 
             Thread rebuildThread = new Thread(new ParameterizedThreadStart(RebuildAsync));
             rebuildThread.Priority = ThreadPriority.Lowest;
@@ -113,7 +175,8 @@ namespace ConsoleWrapper
                 {
                     try
                     {
-                        _imageTexture = Texture.FromBitmap(device, _bitmap, Usage.Dynamic, Pool.Default);
+						Bitmap resizedBitmap = new Bitmap(_bitmap, _width, _height);
+						_imageTexture = Texture.FromBitmap(device, resizedBitmap, Usage.Dynamic, Pool.Default);
 
                         // Set up the material
                         _imageMaterial = new Material();
@@ -126,11 +189,11 @@ namespace ConsoleWrapper
                         verts[0].Normal = new Vector3(0, 1, 0);
                         verts[0].Tu = 0; verts[0].Tv = 1;
 
-                        verts[1].Position = new Vector3(_width, 0, -_height);
+						verts[1].Position = new Vector3(_width, 0, -_height);
                         verts[1].Normal = new Vector3(0, 1, 0);
                         verts[1].Tu = 1; verts[1].Tv = 1;
 
-                        verts[2].Position = new Vector3(_width, 0, 0);
+						verts[2].Position = new Vector3(_width, 0, 0);
                         verts[2].Normal = new Vector3(0, 1, 0);
                         verts[2].Tu = 1; verts[2].Tv = 0;
 
@@ -215,16 +278,27 @@ namespace ConsoleWrapper
 
         public override void Dispose()
         {
-            if (_imageTexture != null)
-            {
-                _imageTexture.Dispose();
-                _imageTexture = null;
-            }
-            if (_imageSprite != null)
-            {
-                _imageSprite.Dispose();
-            }
+			TearDown();
+			if (_bitmap != null)
+			{
+				_bitmap.Dispose();
+				_bitmap = null;
+			}
         }
+
+		private void TearDown()
+		{
+			if (_imageTexture != null)
+			{
+				_imageTexture.Dispose();
+				_imageTexture = null;
+			}
+			if (_imageSprite != null)
+			{
+				_imageSprite.Dispose();
+				_imageSprite = null;
+			}
+		}
 
         #endregion
     }
