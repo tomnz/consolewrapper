@@ -22,12 +22,13 @@ namespace ConsoleWrapper
         private Boolean _newAlerts = false;
         private ConsoleString.StringType _nextType = ConsoleString.StringType.Normal;
         private bool _hasNextType = false;
-        private DirectoryInfo _currentDirectory;
 
-        public DirectoryInfo CurrentDirectory
-        {
-            get { return _currentDirectory; }
-        }
+		private WrapperShellContext _shellContext;
+
+		public DirectoryInfo CurrentDirectory
+		{
+			get { return _shellContext.CurrentDirectory; }
+		}
 
         public WrapperShell()
             : this (new DirectoryInfo(Directory.GetCurrentDirectory()))
@@ -40,14 +41,14 @@ namespace ConsoleWrapper
             _listeners = new List<IWrapperListener>();
             _availableLines = new List<ConsoleString>();
             _wrappers = new List<IWrapper>();
-            _currentDirectory = directory;
+			_shellContext = new WrapperShellContext(directory);
 
             ShowDirectory();
         }
 
         private void ShowDirectory()
         {
-            OutputAppend(_currentDirectory.FullName + "> ", ConsoleString.StringType.Normal);
+            OutputAppend(_shellContext.CurrentDirectory.FullName + "> ", ConsoleString.StringType.Normal);
         }
 
         #region Disposal Code
@@ -241,7 +242,7 @@ namespace ConsoleWrapper
             {
                 string command = line.Split(' ')[0];
                 string args = line.Substring(line.IndexOf(' ') + 1);
-                string[] splitLine = line.Split(new string[] { " ", "\n", "\n\r", Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+                List<string> splitLine = WrapperShellContext.GetArguments(line);
 
                 switch (command)
                 {
@@ -257,7 +258,7 @@ namespace ConsoleWrapper
                         } break;
 					case "view":
 						{
-							if (splitLine.Length != 2)
+							if (splitLine.Count != 2)
 							{
                                 OutputAppend(line + Environment.NewLine);
                                 OutputAppend("VIEW takes one argument - the location of an image file" + Environment.NewLine, ConsoleString.StringType.Err);
@@ -270,10 +271,10 @@ namespace ConsoleWrapper
                                     OutputAppend(line + Environment.NewLine);
                                     OutputAppend(splitLine[1], ConsoleString.StringType.Image);
 								}
-								else if (File.Exists(Path.Combine(_currentDirectory.FullName, splitLine[1])))
+								else if (File.Exists(Path.Combine(_shellContext.CurrentDirectory.FullName, splitLine[1])))
 								{
                                     OutputAppend(line + Environment.NewLine);
-                                    OutputAppend(Path.Combine(_currentDirectory.FullName, splitLine[1]), ConsoleString.StringType.Image);
+									OutputAppend(Path.Combine(_shellContext.CurrentDirectory.FullName, splitLine[1]), ConsoleString.StringType.Image);
 								}
 								else
 								{
@@ -288,7 +289,7 @@ namespace ConsoleWrapper
 
                             try
                             {
-                                Wrapper wrapper = new Wrapper("cmd.exe", "/c " + line, _currentDirectory.FullName);
+								Wrapper wrapper = new Wrapper("cmd.exe", "/c " + line, _shellContext.CurrentDirectory.FullName);
                                 wrapper.AddListener(this);
 
                                 lock (_wrappers)
@@ -324,7 +325,7 @@ namespace ConsoleWrapper
             {
                 try
                 {
-                    Directory.SetCurrentDirectory(Path.GetFullPath(Path.Combine(_currentDirectory.FullName, directory)));
+					Directory.SetCurrentDirectory(Path.GetFullPath(Path.Combine(_shellContext.CurrentDirectory.FullName, directory)));
                 }
                 catch (DirectoryNotFoundException)
                 {
@@ -335,7 +336,8 @@ namespace ConsoleWrapper
             {
                 OutputAppend("Cannot change directory: " + e.Message + Environment.NewLine, ConsoleString.StringType.Err);
             }
-            _currentDirectory = new DirectoryInfo(Directory.GetCurrentDirectory());
+
+			_shellContext.CurrentDirectory = new DirectoryInfo(Directory.GetCurrentDirectory());
         }
 
         #endregion
@@ -447,7 +449,7 @@ namespace ConsoleWrapper
 
             if (_wrappers.Count == 0)
             {
-                _currentLine = _currentDirectory.FullName + "> ";
+                _currentLine = _shellContext.CurrentDirectory.FullName + "> ";
             }
         }
 

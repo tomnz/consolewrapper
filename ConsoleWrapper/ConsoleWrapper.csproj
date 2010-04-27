@@ -110,6 +110,7 @@
     <Compile Include="Wrapper.cs" />
     <Compile Include="WrapperConfig.cs" />
     <Compile Include="WrapperGraphics.cs" />
+    <Compile Include="WrapperShellContext.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Config.Default.xml">
