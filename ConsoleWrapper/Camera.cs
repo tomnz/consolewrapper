@@ -149,7 +149,7 @@ namespace ConsoleWrapper
             // a perpsective transform, we need the field of view (1/4 pi is common),
             // the aspect ratio, and the near and far clipping planes (which define at
             // what distances geometry should be no longer be rendered).
-            _projectionMatrix = Matrix.PerspectiveFovLH((float)(Math.PI / 4), _aspectRatio, 1.0f, 2500.0f);
+            _projectionMatrix = Matrix.PerspectiveFovLH((float)(Math.PI / 4), _aspectRatio, 1.0f, 10000.0f);
             //_projectionMatrix = Matrix.OrthoLH(_width, _height, 1000.0f, -1000.0f);
 
             device.Transform.Projection = _projectionMatrix;

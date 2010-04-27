@@ -71,6 +71,8 @@ namespace ConsoleWrapper
         // width in the view
         private float _viewY = 780.2f; // Within the view
         private float _viewX = 400.0f; // Centred
+		private float _viewZ = 0;
+
         // The following two are used to make sure the text
         // goes to the bottom of the view and that we are
         // viewing at an angle
@@ -390,7 +392,7 @@ namespace ConsoleWrapper
 				_viewLine = _numLines;
 			}
 			
-			SetCameraLocation();
+			SetCameraLocationToViewLine();
         }
 
         // Returns true if the line is outside the frustum
@@ -456,38 +458,82 @@ namespace ConsoleWrapper
             return result;
         }
 
-        private void SetCameraLocation()
+        private void SetCameraLocationToViewLine()
         {
-            int viewZ = 0;
+            _viewZ = 0;
             for (int i = 0; i < _viewLine; i++)
             {
-                viewZ += _lines[i].Height + _lineGap;
+                _viewZ += _lines[i].Height + _lineGap;
             }
 
-            _camera.TargetLocation = new Vector3(_viewX, _viewY, _camLocationDiff - (viewZ));
-            _camera.TargetLookAt = new Vector3(_viewX, 0, _camLookAtDiff - (viewZ));
-
-            // Make sure that we are looking at the right number of lines
-            if (_lines.Count > _bufferSize)
-            {
-                int heightRemoved = 0;
-                lock (_lines)
-                {
-                    while (_lines.Count > _bufferSize)
-                    {
-                        heightRemoved += _lines[0].Height + _lineGap;
-                        _lines.RemoveAt(0);
-                        _viewLine--;
-                        _numLines--;
-                        //_minLine++;
-                    }
-                }
-
-                _camera.MoveCamera(new Vector3(0, 0, heightRemoved));
-            }
+            _camera.TargetLocation = new Vector3(_viewX, _viewY, _camLocationDiff - (_viewZ));
+            _camera.TargetLookAt = new Vector3(_viewX, 0, _camLookAtDiff - (_viewZ));
         }
 
-        public void MoveView(int numLines)
+		/// <summary>
+		/// Keeps the "view line" in sync with _viewZ, which might be
+		/// part way between some lines
+		/// </summary>
+		/// <returns>Returns Z bottom of available lines</returns>
+		private float SetViewLineToCameraLocation()
+		{
+			int zTally = 0;
+			int viewLine = -1;
+
+			for (int i = 0; i < _lines.Count; i++)
+			{
+				zTally += _lines[i].Height + _lineGap;
+				if (zTally >= _viewZ && viewLine == 0)
+				{
+					viewLine = i;
+				}
+			}
+
+			if (viewLine == -1)
+				viewLine = _lines.Count - 1;
+
+			_viewLine = viewLine;
+			return (float)zTally;
+		}
+
+		public void TrimBuffer()
+		{
+			// Make sure that we are looking at the right number of lines
+			if (_lines.Count > _bufferSize)
+			{
+				int heightRemoved = 0;
+				lock (_lines)
+				{
+					while (_lines.Count > _bufferSize)
+					{
+						heightRemoved += _lines[0].Height + _lineGap;
+						_lines.RemoveAt(0);
+						_viewLine--;
+						_numLines--;
+					}
+				}
+
+				_camera.MoveCamera(new Vector3(0, 0, heightRemoved));
+			}
+		}
+
+		public void MoveView(int units)
+		{
+			MoveView((float)(units * FontTextureFactory.LastLetterHeight));
+		}
+
+		public void MoveView(float delta)
+		{
+			_viewZ += delta;
+			float maxZ = SetViewLineToCameraLocation();
+
+			_viewZ = Math.Min(Math.Max(0, _viewZ), maxZ);
+
+			_camera.TargetLocation = new Vector3(_viewX, _viewY, _camLocationDiff - (_viewZ));
+			_camera.TargetLookAt = new Vector3(_viewX, 0, _camLookAtDiff - (_viewZ));
+		}
+
+        public void MoveViewByLines(int numLines)
         {
             _viewLine += numLines;
             if (_viewLine < _minLine)
@@ -499,19 +545,19 @@ namespace ConsoleWrapper
                 _viewLine = _numLines;
             }
 
-            SetCameraLocation();
+            SetCameraLocationToViewLine();
         }
 
         public void MoveViewHome()
         {
             _viewLine = _minLine;
-            SetCameraLocation();
+            SetCameraLocationToViewLine();
         }
 
         public void MoveViewEnd()
         {
             _viewLine = _numLines;
-            SetCameraLocation();
+            SetCameraLocationToViewLine();
         }
 
         #region IDisposable Members

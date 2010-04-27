@@ -185,11 +185,11 @@ namespace ConsoleWrapper
             }
             else if (e.Control && e.KeyCode.Equals(Keys.Up))
             {
-                _graphics.MoveView(-2);
+                _graphics.MoveView(-5);
             }
             else if (e.Control && e.KeyCode.Equals(Keys.Down))
             {
-                _graphics.MoveView(2);
+                _graphics.MoveView(5);
             }
             else if (e.KeyCode.Equals(Keys.Up))
             {

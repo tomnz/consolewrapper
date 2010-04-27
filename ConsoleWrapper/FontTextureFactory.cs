@@ -8,7 +8,23 @@ namespace ConsoleWrapper
 {
     class FontTextureFactory
     {
-        private static IDictionary<string, FontTexture> _fontTextures;
+		private static IDictionary<string, FontTexture> _fontTextures;
+		private static FontTexture _lastFontTexture;
+
+		public static int LastLetterHeight
+		{
+			get 
+			{
+				if (_lastFontTexture != null)
+				{
+					return _lastFontTexture.LetterHeight;
+				}
+				else
+				{
+					return 0;
+				}
+			}
+		}
 
         public static FontTexture GetFontTexture(string fontFace, int fontSize, Device device)
         {
@@ -20,7 +36,8 @@ namespace ConsoleWrapper
             string fontKey = fontFace + "_" + fontSize + "_" + device.GetHashCode();
             if (!_fontTextures.ContainsKey(fontKey))
             {
-                _fontTextures.Add(fontKey, new FontTexture(fontFace, fontSize, device));
+				_lastFontTexture = new FontTexture(fontFace, fontSize, device);
+				_fontTextures.Add(fontKey, _lastFontTexture);
             }
 
             return _fontTextures[fontKey];
@@ -51,6 +68,8 @@ namespace ConsoleWrapper
                 _fontTextures[key].Dispose();
                 _fontTextures[key] = null;
             }
+
+			_lastFontTexture = null;
         }
     }
 }
