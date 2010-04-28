@@ -26,6 +26,21 @@ namespace ConsoleWrapper
 			}
 		}
 
+        public static int LastLetterWidth
+        {
+            get
+            {
+                if (_lastFontTexture != null)
+                {
+                    return _lastFontTexture.LetterWidth;
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+        }
+
         public static FontTexture GetFontTexture(string fontFace, int fontSize, Device device)
         {
             if (_fontTextures == null)

@@ -2,7 +2,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.30729</ProductVersion>
+    <ProductVersion>9.0.21022</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{798687A0-7176-473F-8FEA-1C22F118C5F5}</ProjectGuid>
     <OutputType>WinExe</OutputType>
@@ -54,30 +54,30 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Camera.cs" />
+    <Compile Include="Graphics\Camera.cs" />
     <Compile Include="ConfigGUI.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="ConfigGUI.Designer.cs">
       <DependentUpon>ConfigGUI.cs</DependentUpon>
     </Compile>
-    <Compile Include="ConsoleString.cs" />
-    <Compile Include="FontTexture.cs" />
-    <Compile Include="FontTextureFactory.cs" />
-    <Compile Include="WrapperShell.cs" />
-    <Compile Include="ImageSprite.cs" />
+    <Compile Include="Shell\ConsoleString.cs" />
+    <Compile Include="Graphics\FontTexture.cs" />
+    <Compile Include="Graphics\FontTextureFactory.cs" />
+    <Compile Include="Shell\WrapperShell.cs" />
+    <Compile Include="Graphics\ImageSprite.cs" />
     <Compile Include="DXGUI.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="DXGUI.Designer.cs">
       <DependentUpon>DXGUI.cs</DependentUpon>
     </Compile>
-    <Compile Include="GraphicsTimer.cs" />
-    <Compile Include="IAnimatable.cs" />
-    <Compile Include="Renderable.cs" />
-    <Compile Include="IWrapper.cs" />
-    <Compile Include="IWrapperListener.cs" />
-    <Compile Include="LineSprite.cs" />
+    <Compile Include="Graphics\GraphicsTimer.cs" />
+    <Compile Include="Graphics\IAnimatable.cs" />
+    <Compile Include="Graphics\Renderable.cs" />
+    <Compile Include="Shell\IWrapper.cs" />
+    <Compile Include="Shell\IWrapperListener.cs" />
+    <Compile Include="Graphics\LineSprite.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="ConfigGUI.resx">
@@ -107,10 +107,10 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <Compile Include="Wrapper.cs" />
-    <Compile Include="WrapperConfig.cs" />
-    <Compile Include="WrapperGraphics.cs" />
-    <Compile Include="WrapperShellContext.cs" />
+    <Compile Include="Shell\Wrapper.cs" />
+    <Compile Include="Shell\WrapperConfig.cs" />
+    <Compile Include="Graphics\WrapperGraphics.cs" />
+    <Compile Include="Shell\WrapperShellContext.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Config.Default.xml">

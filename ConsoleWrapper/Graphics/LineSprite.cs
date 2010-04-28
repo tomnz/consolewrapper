@@ -90,36 +90,30 @@ namespace ConsoleWrapper
             // Teardown
             this.Dispose();
 
-			// Set up the line texture
-			Bitmap b = new Bitmap(1, 1);
-			System.Drawing.Font font = new System.Drawing.Font(_fontFace, _fontSize);
+            // Set up the line texture
+            Bitmap b = new Bitmap(1, 1);
+            System.Drawing.Font font = new System.Drawing.Font(_fontFace, _fontSize);
 
-			Graphics g = Graphics.FromImage(b);
+            Graphics g = Graphics.FromImage(b);
 
-			g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
+            g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
 
-			_displayString = "";
-			string tempString = _line.Text;
+            _displayString = "";
+            string tempString = _line.Text;
 
-			while (tempString.Length > MaxLineWidth)
-			{
-				_displayString += tempString.Substring(0, MaxLineWidth) + Environment.NewLine;
-				tempString = tempString.Substring(MaxLineWidth);
-			}
-			_displayString += tempString;
+            while (tempString.Length > MaxLineWidth)
+            {
+                _displayString += tempString.Substring(0, MaxLineWidth) + Environment.NewLine;
+                tempString = tempString.Substring(MaxLineWidth);
+            }
+            _displayString += tempString;
 
-			SizeF stringSize = g.MeasureString(_displayString, font, new PointF(0, 0), StringFormat.GenericTypographic);
-			//Size stringSize = TextRenderer.MeasureText(_line.Text, font);
+            SizeF stringSize = g.MeasureString(_displayString, font, new PointF(0, 0), StringFormat.GenericTypographic);
 
-			_lineWidth = Size.Truncate(stringSize).Width;
-			_lineHeight = Size.Truncate(stringSize).Height;
+            _lineWidth = Size.Truncate(stringSize).Width;
+            _lineHeight = Size.Truncate(stringSize).Height;
 
-			ThreadPool.QueueUserWorkItem(new WaitCallback(RebuildAsync), device);
-
-			//Thread rebuildThread = new Thread(new ParameterizedThreadStart(RebuildAsync));
-			//rebuildThread.Priority = ThreadPriority.Lowest;
-			//rebuildThread.SetApartmentState(ApartmentState.MTA);
-			//rebuildThread.Start(device);
+            ThreadPool.QueueUserWorkItem(new WaitCallback(RebuildAsync), device);
         }
 
         private void RebuildAsync(Object deviceObj)
@@ -205,15 +199,25 @@ namespace ConsoleWrapper
             {
                 // Set up the expansion
                 Matrix worldBackup = device.Transform.World;
-				if (_widthFactor != 1)
-				{
-					device.Transform.World *= Matrix.Scaling(new Vector3((float)_widthFactor, 1, 1));
-				}
 
-				Mesh letterSprite = WrapperGraphics.LetterSprite;
+                Mesh letterSprite = WrapperGraphics.LetterSprite;
 
-				if (letterSprite == null)
-					return;
+                if (letterSprite == null)
+                    return;
+
+                CustomVertex.PositionNormalTextured[] verts = new CustomVertex.PositionNormalTextured[4];
+
+                verts[0].Position = new Vector3(0, 0, -_fontTexture.LetterHeight);
+                verts[0].Normal = new Vector3(0, 1, 0);
+
+                verts[1].Position = new Vector3(_fontTexture.LetterWidth, 0, -_fontTexture.LetterHeight);
+                verts[1].Normal = new Vector3(0, 1, 0);
+
+                verts[2].Position = new Vector3(_fontTexture.LetterWidth, 0, 0);
+                verts[2].Normal = new Vector3(0, 1, 0);
+
+                verts[3].Position = new Vector3(0, 0, 0);
+                verts[3].Normal = new Vector3(0, 1, 0);
 
                 AttributeRange[] attributes = new AttributeRange[1];
                 attributes[0].AttributeId = 0;
@@ -238,12 +242,14 @@ namespace ConsoleWrapper
                 letterSprite.SetAttributeTable(attributes);
 
                 int numLines = 0;
+                int letterPos = 0;
 
                 foreach (char c in letters)
                 {
                     if (c == '\n')
                     {
                         numLines++;
+                        letterPos = 0;
                         device.Transform.World = worldBackup;
                         device.Transform.World *= Matrix.Translation(0, 0, -(float)(_fontTexture.LetterHeight * 1) * numLines);
                     }
@@ -254,25 +260,29 @@ namespace ConsoleWrapper
                     {
                         FontTexture.LetterInfo letter = _fontTexture.Letter(c);
 
-                        CustomVertex.PositionNormalTextured[] verts = new CustomVertex.PositionNormalTextured[4];
-
-                        verts[0].Position = new Vector3(0, 0, -letter.h);
-                        verts[0].Normal = new Vector3(0, 1, 0);
                         verts[0].Tu = (float)letter.ul; verts[0].Tv = (float)letter.vb;
-
-                        verts[1].Position = new Vector3(letter.w, 0, -letter.h);
-                        verts[1].Normal = new Vector3(0, 1, 0);
                         verts[1].Tu = (float)letter.ur; verts[1].Tv = (float)letter.vb;
-
-                        verts[2].Position = new Vector3(letter.w, 0, 0);
-                        verts[2].Normal = new Vector3(0, 1, 0);
                         verts[2].Tu = (float)letter.ur; verts[2].Tv = (float)letter.vt;
-
-                        verts[3].Position = new Vector3(0, 0, 0);
-                        verts[3].Normal = new Vector3(0, 1, 0);
                         verts[3].Tu = (float)letter.ul; verts[3].Tv = (float)letter.vt;
 
+                        // Initial code for some extra letter animation
+                        // Disabled for now as it's rubbish
+                        //if (_widthFactor != 1)
+                        //{
+                        //    float heightDiff = Math.Min(Math.Max(((double)((double)letterPos + 40 / (double)LineSprite.MaxLineWidth) * _widthFactor), 0.0), 1.0) * (double)_fontTexture.LetterHeight / 2.0;
+                        //    verts[0].Position = new Vector3(0, 0, -_fontTexture.LetterHeight + heightDiff);
+                        //    verts[1].Position = new Vector3(_fontTexture.LetterWidth, 0, -_fontTexture.LetterHeight + heightDiff);
+                        //    verts[2].Position = new Vector3(_fontTexture.LetterWidth, 0, -heightDiff);
+                        //    verts[3].Position = new Vector3(0, 0, -heightDiff);
+                        //}
+
                         letterSprite.SetVertexBufferData(verts, LockFlags.Discard);
+
+                        // Animation translation
+                        if (_widthFactor != 1)
+                        {
+                            device.Transform.World *= Matrix.Scaling(new Vector3((float)_widthFactor, 1, 1));
+                        }
 
                         try
                         {
@@ -283,7 +293,7 @@ namespace ConsoleWrapper
                             _valid = false;
                         }
 
-                        // Translate world for the next letter
+                        // Undo animation for positioning next letter
                         if (_widthFactor != 1)
                         {
                             device.Transform.World *= Matrix.Scaling(new Vector3(1 / (float)_widthFactor, 1, 1));
@@ -291,12 +301,9 @@ namespace ConsoleWrapper
 
                         device.Transform.World *= Matrix.Translation((float)letter.w, 0F, 0F);
 
-                        if (_widthFactor != 1)
-                        {
-                            device.Transform.World *= Matrix.Scaling(new Vector3((float)_widthFactor, 1, 1));
-                        }
+                        letterPos++;
                     }
-				}
+                }
 
                 // Restore the world matrix
                 device.Transform.World = worldBackup;

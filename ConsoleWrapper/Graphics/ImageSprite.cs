@@ -155,9 +155,6 @@ namespace ConsoleWrapper
 			}
 
 			ThreadPool.QueueUserWorkItem(new WaitCallback(RebuildAsync), device);
-			//Thread rebuildThread = new Thread(new ParameterizedThreadStart(RebuildAsync));
-			//rebuildThread.Priority = ThreadPriority.Lowest;
-			//rebuildThread.Start(device);
         }
 
         private void RebuildAsync(Object deviceObj)
