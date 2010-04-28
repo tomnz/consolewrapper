@@ -190,6 +190,9 @@ namespace ConsoleWrapper
                     i++;
                 }
 
+                _letterHeight -= 2;
+                _letterWidth -= 2;
+
                 _texture = Texture.FromBitmap(device, b, Usage.None, Pool.Managed);
                 
                 g.Dispose();

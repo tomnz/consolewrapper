@@ -280,7 +280,27 @@ namespace ConsoleWrapper
 
             // Get the viewing frustum
             Plane[] viewingFrustum = _camera.GetFrustum();
-            
+
+            // Get some minification happening
+            if (_device.DeviceCaps.TextureFilterCaps.SupportsMinifyAnisotropic)
+                _device.SamplerState[0].MinFilter = TextureFilter.Anisotropic;
+            else if (_device.DeviceCaps.TextureFilterCaps.SupportsMinifyGaussianQuad)
+                _device.SamplerState[0].MinFilter = TextureFilter.GaussianQuad;
+            else if (_device.DeviceCaps.TextureFilterCaps.SupportsMinifyLinear)
+                _device.SamplerState[0].MinFilter = TextureFilter.Linear;
+
+            // Stop texture wrapping
+            if (_device.DeviceCaps.TextureAddressCaps.SupportsClamp)
+            {
+                _device.SamplerState[0].AddressU = TextureAddress.Clamp;
+                _device.SamplerState[0].AddressV = TextureAddress.Clamp;
+            }
+            else if (_device.DeviceCaps.TextureAddressCaps.SupportsBorder)
+            {
+                _device.SamplerState[0].AddressU = TextureAddress.Border;
+                _device.SamplerState[0].AddressV = TextureAddress.Border;
+            }
+
             int numLinesRendered = 0;
 
             lock (_lines)
@@ -288,26 +308,6 @@ namespace ConsoleWrapper
                 foreach (Renderable line in _lines)
                 {
                     _device.Transform.World = transform * baseLine;
-
-                    // Get some minification happening
-                    if (_device.DeviceCaps.TextureFilterCaps.SupportsMinifyAnisotropic)
-                        _device.SamplerState[0].MinFilter = TextureFilter.Anisotropic;
-                    else if (_device.DeviceCaps.TextureFilterCaps.SupportsMinifyGaussianQuad)
-                        _device.SamplerState[0].MinFilter = TextureFilter.GaussianQuad;
-                    else if (_device.DeviceCaps.TextureFilterCaps.SupportsMinifyLinear)
-                        _device.SamplerState[0].MinFilter = TextureFilter.Linear;
-
-                    // Stop texture wrapping
-                    if (_device.DeviceCaps.TextureAddressCaps.SupportsClamp)
-                    {
-                        _device.SamplerState[0].AddressU = TextureAddress.Clamp;
-                        _device.SamplerState[0].AddressV = TextureAddress.Clamp;
-                    }
-                    else if (_device.DeviceCaps.TextureAddressCaps.SupportsBorder)
-                    {
-                        _device.SamplerState[0].AddressU = TextureAddress.Border;
-                        _device.SamplerState[0].AddressV = TextureAddress.Border;
-                    }
 
                     if (!CullLine(viewingFrustum, Vector3.TransformCoordinate(new Vector3(0, 0, -line.Height), transform), Vector3.TransformCoordinate(new Vector3(line.Width, 0, 0), transform)))
                     {
@@ -325,7 +325,7 @@ namespace ConsoleWrapper
                     _device.PresentationParameters.BackBufferWidth - 20, 30),
                 DrawTextFormat.Left | DrawTextFormat.WordBreak | DrawTextFormat.ExpandTabs,
                 _currentLine.Color);
-            //_uiFont.DrawText(null, "FPS: " + _timer.FPS.ToString("0.00"), _device.PresentationParameters.BackBufferWidth - 85, 10, System.Drawing.Color.LightSeaGreen);
+            _uiFont.DrawText(null, "FPS: " + _timer.FPS.ToString("0.00"), _device.PresentationParameters.BackBufferWidth - 85, 10, System.Drawing.Color.LightSeaGreen);
             //_uiFont.DrawText(null, numLinesRendered.ToString(), 10, 10, System.Drawing.Color.Red);
 
             // End the scene
