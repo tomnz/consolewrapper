@@ -14,9 +14,6 @@ namespace ConsoleWrapper
     {
         public static readonly int MaxLineWidth = 80;
 
-        //private readonly int mipLevels = 2;
-
-        private Mesh _lineSprite;
         private Texture _lineTexture;
         public Texture LineTexture
         {
@@ -125,7 +122,6 @@ namespace ConsoleWrapper
                 // Rebuild
                 if (_line.Equals(""))
                 {
-                    _lineSprite = null;
                     _valid = true;
                 }
                 else
@@ -147,7 +143,6 @@ namespace ConsoleWrapper
                     {
                         _valid = false;
                         _lineTexture = null;
-                        _lineSprite = null;
                         return;
                     }
                 }
@@ -156,7 +151,6 @@ namespace ConsoleWrapper
             {
                 _valid = false;
                 _lineTexture = null;
-                _lineSprite = null;
             }
             finally
             {
@@ -319,10 +313,7 @@ namespace ConsoleWrapper
                 _lineTexture.Dispose();
                 _lineTexture = null;
             }
-            if (_lineSprite != null)
-            {
-                _lineSprite.Dispose();
-            }
+			_fontTexture = null;
         }
 
         #endregion

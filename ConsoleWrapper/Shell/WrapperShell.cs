@@ -48,7 +48,7 @@ namespace ConsoleWrapper
 
         private void ShowDirectory()
         {
-            OutputAppend(_shellContext.CurrentDirectory.FullName + "> ", ConsoleString.StringType.Normal);
+            OutputAppend(_shellContext.CurrentDirectory.FullName + ">", ConsoleString.StringType.Normal);
         }
 
         #region Disposal Code
@@ -228,8 +228,6 @@ namespace ConsoleWrapper
         {
             if (_wrappers.Count > 0)
             {
-                OutputAppend(line + Environment.NewLine, type);
-
                 lock (_wrappers)
                 {
                     foreach (IWrapper wrapper in _wrappers)

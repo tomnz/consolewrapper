@@ -129,10 +129,6 @@ namespace ConsoleWrapper
             // Build the texture asynchronously so as to 
             // not delay the render
 			ThreadPool.QueueUserWorkItem(new WaitCallback(RebuildAsync), device);
-
-			//Thread rebuildThread = new Thread(new ParameterizedThreadStart(RebuildAsync));
-			//rebuildThread.Priority = ThreadPriority.Lowest;
-			//rebuildThread.Start(device);
         }
 
         private void RebuildAsync(Object deviceObj)
