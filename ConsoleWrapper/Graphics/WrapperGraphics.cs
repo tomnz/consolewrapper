@@ -87,6 +87,10 @@ namespace ConsoleWrapper
         // The number of lines to keep in the buffer
         private int _bufferSize = 500;
 
+        // The longest slice of time allowed for the
+        // animator (secs)
+        private double _minTimeslice = 0.05;
+
 		// Helper mesh for rendering letters
 		private static Mesh _letterSprite = null;
 		public static Mesh LetterSprite
@@ -260,14 +264,27 @@ namespace ConsoleWrapper
             // Animation
             if (!_paused)
             {
-                _camera.Animate((float)frameTime, _device.Lights[1]);
-
-                lock (_lines)
+                // If the current frame is longer than our minimum animation
+                // timeslice, then split it into chunks
+                double animTime = frameTime;
+                int animCount = 1;
+                if (frameTime > _minTimeslice)
                 {
-                    foreach (Object line in _lines)
+                    animCount = (int)Math.Ceiling(frameTime / _minTimeslice);
+                    animTime = frameTime / (double)animCount;
+                }
+
+                for (int i = 0; i < animCount; i++)
+                {
+                    _camera.Animate((float)animTime, _device.Lights[1]);
+
+                    lock (_lines)
                     {
-                        if (line is IAnimatable)
-                            ((IAnimatable)line).Animate((float)frameTime);
+                        foreach (Object line in _lines)
+                        {
+                            if (line is IAnimatable)
+                                ((IAnimatable)line).Animate((float)animTime);
+                        }
                     }
                 }
             }
