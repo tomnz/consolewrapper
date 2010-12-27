@@ -181,14 +181,14 @@ namespace ConsoleWrapper
             // Bottom
             frustum[3].A = mat.M14 + mat.M12;
             frustum[3].B = mat.M24 + mat.M22;
-            frustum[3].C = mat.M33 + mat.M32;
+            frustum[3].C = mat.M34 + mat.M32;
             frustum[3].D = mat.M44 + mat.M42;
             
             // Near
-            frustum[5].A = mat.M14 - mat.M13;
-            frustum[5].B = mat.M24 - mat.M23;
-            frustum[5].C = mat.M34 - mat.M33;
-            frustum[5].D = mat.M44 - mat.M43;
+            frustum[4].A = mat.M14 + mat.M13;
+            frustum[4].B = mat.M24 + mat.M23;
+            frustum[4].C = mat.M34 + mat.M33;
+            frustum[4].D = mat.M44 + mat.M43;
             
             // Far
             frustum[5].A = mat.M14 - mat.M13;
